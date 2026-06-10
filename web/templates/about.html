@@ -1,0 +1,300 @@
+{{define "about"}}
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>About | EdwardJPT</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EdwardJPT's profile page">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="icon" href="/static/images/logo.webp">
+  <link rel="preload" as="style" href="/static/css/about.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/about.css">
+  <link rel="stylesheet" href="/static/css/output.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <main
+    class="relative flex min-h-screen w-full max-w-screen flex-col items-center bg-lighter_background pb-12 font-sans text-slate-200"
+    id="main">
+    <div class="fixed top-0 left-0 z-20 m-0 flex w-full items-center justify-center bg-lighter_background p-0"
+      id="links">
+      <a href="/"
+        class="navPage flex w-64 items-center justify-center px-3 py-3 text-center text-xl hover:bg-background hover:font-bold">
+        Home
+      </a>
+      <a href="/blog"
+        class="navPage flex w-64 items-center justify-center px-3 py-3 text-center text-xl hover:bg-background hover:font-bold">
+        Blog
+      </a>
+      <a href="/projects"
+        class="navPage flex w-64 items-center justify-center px-3 py-3 text-center text-xl hover:bg-background hover:font-bold">
+        Projects
+      </a>
+    </div>
+
+    <h2 class="mt-16 w-max border-b border-b-white pb-2 text-center text-2xl sm:text-title sm:leading-relaxed lg:mt-15">
+      About me
+    </h2>
+
+    <!-- Photo Section -->
+    <div class="relative mt-16 mb-2 flex w-full items-center justify-center md:w-article">
+      <div class="relative z-10 md:-ml-6 h-84 w-72 border border-pink-600">
+        <img src="/static/images/profile.jpg" alt="My photo profile" class="">
+      </div>
+      <div class="absolute -top-7 right-10 md:-top-8 h-84 w-72 border border-yellow-200 md:left-52">
+      </div>
+    </div>
+
+    <div class="mt-4 flex flex-row items-center text-base">
+      <p class="mx-7 md:text-xl">Short Bio</p>
+      <label class="relative inline-block h-7 w-12">
+        <input type="checkbox" class="h-0 w-0 opacity-0" id="bio_slider" />
+        <span class="slider"></span>
+      </label>
+      <p class="mx-7 md:text-xl">Long Bio</p>
+    </div>
+
+    <div id="short_bio" class="mt-6 pb-8">
+      <article class="flex w-full flex-col gap-y-4 justify-center px-5 text-base md:w-175 md:text-xl">
+        <p>
+          Hi, I am <span class="font-bold text-2xl">EdwardJPT</span>.
+        </p>
+        <p class="text-justify">
+          I'm a
+          <a href="/tag/web-app" class="font-bold underline whitespace-normal">
+            full-stack web developer</a>
+          with passion for low level programming.
+          Nowadays, I mainly works with Go, SQLite, HTML, TailwindCSS, and HTMX <span class="text-base">or</span>
+          Preact.js if
+          the project calls for it. In the past, I also used popular tools like Node.js (with Typescript), PostgreSQL,
+          and
+          React.js/Next.js, but
+          I’ve
+          shifted my
+          focus to my current tech stack because I prefer keeping things simple, fast, and lightweight.
+        </p>
+        <p class="text-justify">
+          After five years of building web applications, I’ve found myself increasingly drawn to the lower part of the
+          stack, especially regarding the database systems that I used everyday. I’m currently digging deeper into
+          <a href="/tag/database-internals" class="font-bold underline whitespace-normal">
+            database internals</a>
+          and
+          <a href="/tag/distributed-systems" class="font-bold underline">
+            distributed systems</a>,
+          learning how databases organize and retrieve data efficiently, how storage engines
+          are designed, and how large-scale systems maintain consistency and reliability.
+        </p>
+        <p class="text-justify">
+          I'm currently available for both full-time or part-time opportunities.
+          If you're working on interesting problems and you think I can help you,
+          you can contact me through
+          <a href="mailto:email@edward.wtf" class="font-bold underline">
+            this email</a>.
+          You can also visit my
+          <a href="/blog" class="font-bold underline">
+            blog page</a>
+          and
+          <a href="/projects" class="font-bold underline">
+            projects page</a>,
+          to see some of the things I've built and the topics I'm currently exploring.
+        </p>
+        <p class="text-justify">
+          Thank you for visiting my site!
+        </p>
+      </article>
+    </div>
+
+    <div id="long_bio" class="hidden mt-6 pb-8">
+      <article class="flex w-full flex-col gap-y-4 justify-center px-5 text-base md:w-175 md:text-xl">
+        <p>
+          Hello, I am <span class="font-bold text-2xl">EdwardJPT</span>.
+        </p>
+        <p class="text-justify">
+          I am a
+          <a href="/tag/web-app" class="font-bold underline whitespace-normal">
+            full-stack web developer</a>
+          who strives to build efficient and lightweight software.
+          Nowadays, I mainly works with Go, SQLite, HTML, TailwindCSS, and HTMX <span class="text-base">or</span>
+          Preact.js if the project calls for it.
+          In the past, I also used popular tools like Node.js (with Typescript), PostgreSQL, and React.js/Next.js, but
+          now I’ve
+          shifted my focus to my current tech stack because I prefer keeping things simple, fast, and lightweight.
+          I try to achieve those by sticking to Go standard library as much as possible, and relying on JavaScript
+          libraries and frameworks as little as possible.
+        </p>
+        <p class="text-justify">
+          My approach to software engineering is rooted in my academic background where I hold a Bachelor’s
+          degree in
+          Physics. In Physics, I was trained to look past the abstractions and try to understand things at their most
+          fundamental
+          level.
+          This exact mindset is what drives my current technical pursue where I am moving further down the stack, trying
+          to actively digging into
+          <a href="/tag/database-internals" class="font-bold underline whitespace-normal">
+            database internals</a>, storage engines, and the mechanics of
+          <a href="/tag/distributed-systems" class="font-bold underline">
+            distributed systems</a>.
+        </p>
+        <p class="text-justify">
+          My first interaction with programming was in my first semester in college, where all the
+          freshmen was required by the faculty to take
+          an introductory programming course. There, I wrote my first "Hello World" program in C++ and instantly fell in
+          love with it, captivated by the possibility of controlling a computer to do whatever I wanted.
+          Driven by that curiosity, in
+          the next years,
+          I took several computational physics courses. In this courses, I see how certain
+          <!-- TODO: wrap it in link to tag when we done -->
+          numerical methods
+          could compute things exponentially faster than others,
+          which then sparked a deep fascination with performance and efficiency of algorithms.
+        </p>
+        <p class="text-justify">
+          With that momentum, outside of classes, I also spent time solving mathematical and
+          programming problems on
+          <a href="/tag/project-euler" class="font-bold underline">
+            Project Euler</a>, where I learned even more about algorithms.
+          I finished my degree by writing a thesis in computational physics,
+          utilizing machine learning to predict the refractive indexes of
+          thin metal films from spectroscopic ellipsometry measurements. This deepened my love for programming even
+          further, as it revealed that we couldn't only able to compute things by programming the computer explicitly,
+          but also it's possible to make a computer to compute things by feeding it a large amount of data.
+        </p>
+        <p class="text-justify">
+          Throughout my career, I have experience in both working for a full-time for a company, and with part-time
+          opportunities in freelancing. Whether working with an up and running software, or building the project from
+          scratch. I have enjoyed the
+          challenge of turning ideas into reliable products. These experiences exposed me to a wide range of technical
+          and business problems, from designing application architectures and databases, to optimizing performance and
+          delivering features that provide real value to users.
+        </p>
+        <p class="text-justify">
+          To do my development in my laptop, I run Linux distro that's EndeavourOS, do all of my coding in Neovim, and
+          currently I'm tinkering around with AI agent that's OpenCode and Pi.
+        </p>
+        <p class="text-justify">
+          I'm currently available for both full-time or part-time opportunities.
+          If you're working on interesting problems and you think I can help you,
+          you can contact me through
+          <a href="mailto:email@edward.wtf" class="font-bold underline">
+            this email</a>.
+          You can also visit my
+          <a href="/blog" class="font-bold underline">
+            blog page</a>
+          and
+          <a href="/projects" class="font-bold underline">
+            projects page</a>,
+          to see some of the things I've built and the topics I'm currently exploring.
+        </p>
+        <p class="text-justify">
+          Thank you for visiting my site!
+        </p>
+      </article>
+    </div>
+  </main>
+
+  <section
+    class="flex min-h-screen w-full max-w-screen flex-col items-center bg-background pb-24 font-sans text-slate-200">
+    <h2 class="mt-16 w-max border-b border-b-white pb-2 text-center text-2xl sm:text-title sm:leading-relaxed lg:mt-20">
+      About this site
+    </h2>
+    <article class="flex w-full flex-col justify-center px-5 text-base md:w-article md:text-xl">
+      <div class="mt-7">
+        <div class="mb-2 flex w-full flex-row">
+          <p class="w-1/12">Q :</p>
+          <p class="w-11/12">
+            Why .wtf domain?
+          </p>
+        </div>
+
+        <div class="mb-2 flex w-full flex-row">
+          <p class="w-1/12">A :</p>
+          <p class="w-11/12 text-justify leading-7">
+            I always wanted a short web domain with my name in it, but edward.com or edward.io is not available, and
+            edward.online or edward.cc is expensive.
+            One day I found
+            <a class="underline"
+              href="https://ellie.wtf/posts/i-quit-my-job-to-work-full-time-on-my-open-source-project"
+              target="_blank">this blog post</a>
+            while scrolling over
+            <a class="underline" href="https://news.ycombinator.com/" target="_blank">Hackernews</a>
+            and found out that .wtf domain is possible and the price for edward.wtf wasn't expensive, so I bought it.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-7">
+        <div class="mb-2 flex w-full flex-row">
+          <p class="w-1/12">Q :</p>
+          <p class="w-11/12">
+            What is this site about?
+          </p>
+        </div>
+
+        <div class="mb-2 flex w-full flex-row">
+          <p class="w-1/12">A :</p>
+          <p class="w-11/12 text-justify leading-7">
+            Just like what shown in the navigation bar, this site is the place where I publish about my
+            <a class="underline" href="/projects">
+              personal projects</a>,
+            and also my writings either in the form of
+            <a class="underline" href="/blog?type=posts">
+              blog post</a> <span class="text-[15px] font-medium">(I wrote it for other people to read)</span>,
+            or
+            <a class="underline" href="/blog?type=notes">
+              public personal notes</a> <span class="text-[15px] font-medium">(I wrote it for myself but it publish
+              anyway)</span>.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-7">
+        <div class="mb-2 flex w-full flex-row">
+          <p class="w-1/12">Q :</p>
+          <p class="w-11/12">
+            What is the tech stack of this blog?
+          </p>
+        </div>
+
+        <div class="mb-2 flex w-full flex-row">
+          <p class="w-1/12">A :</p>
+          <p class="w-11/12 text-justify leading-7">
+            I wrote this website myself as a means to learn Golang.
+            So, I use Go (with Chi) for the back end, Go html/template for the front end,
+            <a href="https://www.sqlite.org/index.html" target="_blank" class="underline">
+              SQLite</a> for the database, and TailwindCSS to style the page.
+            <a href="https://www.github.com/edwardjpt" target="_blank" class="underline">Here's the code of this
+              website</a>.
+          </p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <div class="bg-background">
+    {{template "footer" .}}
+  </div>
+
+  <script>
+    // bio controller
+    const shortBio = document.getElementById("short_bio");
+    const longBio = document.getElementById("long_bio");
+    const bioSlider = document.getElementById("bio_slider");
+
+    let bioBool = true;
+    function bioContoller() {
+      bioBool = !bioBool;
+      shortBio.style.display = bioBool ? "block" : "none";
+      longBio.style.display = bioBool ? "none" : "block";
+    }
+
+    bioSlider.addEventListener("click", bioContoller);
+  </script>
+</body>
+
+</html>
+{{end}}

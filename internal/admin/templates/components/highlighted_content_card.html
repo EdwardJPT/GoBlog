@@ -1,0 +1,64 @@
+{{define "highlighted-card"}}
+<div class="flex flex-wrap justify-center gap-4 mb-8">
+  <!-- Works -->
+  <div class="bg-white rounded-lg shadow min-w-63 flex items-center justify-center p-4">
+    <a href="/nimda/selected-works" class="p-3 bg-blue-100 rounded-lg">
+      <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg>
+    </a>
+    <div class="ml-4">
+      <p class="text-base font-medium text-gray-600">
+        Selected Works
+      </p>
+    </div>
+  </div>
+
+  <!-- Experiences -->
+  <div class="bg-white rounded-lg shadow min-w-63 flex items-center justify-center p-4">
+    <a href="/nimda/experiences" class="p-3 bg-green-100 rounded-lg">
+      <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 6V4a3 3 0 016 0v2m-9 0h12a2 2 0 012 2v3H4V8a2 2 0 012-2zm-2 7h16v3a2 2 0 01-2 2H6a2 2 0 01-2-2v-3z" />
+      </svg>
+    </a>
+    <div class="ml-4">
+      <p class="text-base font-medium text-gray-600">
+        Experiences
+      </p>
+    </div>
+  </div>
+
+  <!-- Writings -->
+  <div class="bg-white rounded-lg shadow min-w-63 flex items-center justify-center p-4">
+    <a href="/nimda/selected-writings" class="p-3 bg-yellow-100 rounded-lg">
+      <svg class="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    </a>
+    <div class="ml-4">
+      <p class="text-base font-medium text-gray-600">
+        Selected Writings
+      </p>
+    </div>
+  </div>
+
+  <!-- Tags -->
+  <div class="bg-white rounded-lg shadow min-w-63 flex items-center justify-center p-4">
+    <a href="/nimda/tags" class="p-3 bg-yellow-100 rounded-lg">
+      <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M7 7h.01M3 11l8-8a2 2 0 012.828 0l6.172 6.172a2 2 0 010 2.828l-8 8a2 2 0 01-2.828 0L3 13.828A2 2 0 013 11z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3l10 10" />
+      </svg>
+    </a>
+    <div class="ml-4">
+      <p class="text-base font-medium text-gray-600">
+        Tags Management
+      </p>
+    </div>
+  </div>
+</div>
+{{end}}

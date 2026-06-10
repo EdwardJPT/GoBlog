@@ -1,0 +1,1592 @@
+{{define "index"}}
+<!DOCTYPE html>
+<html lang="en" id="outer-scroll">
+
+<head>
+  <title>Home | EdwardJPT</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EdwardJPT's website home page">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="icon" href="/static/images/logo.webp">
+  <link rel="preload" as="style" href="/static/css/index.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/output.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body class="flex min-h-screen max-w-[1920px] overflow-auto flex-col items-center justify-center bg-background">
+
+  <div
+    class="sticky top-0 h-dvh w-full flex flex-col p-4 md:p-6 overflow-hidden font-sans text-slate-200 bg-lighter_background max-h-screen">
+
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 shrink-0 gap-0 md:gap-6">
+      <div class="flex flex-col">
+        <a href="/" class="flex flex-row items-center">
+          <img src="/static/images/logo-for-page.png" alt="logo picture" width="30" height="37.5"
+            class="h-10 w-6 mr-4 sm:h-10 sm:w-7.5" />
+          <h1 class="text-4xl font-bold tracking-tight text-white hover:text-indigo-200 transition-colors">
+            EdwardJPT's Log
+          </h1>
+        </a>
+
+        <p class="text-slate-400 text-sm md:text-base font-bold mt-2 max-w-160">
+          A feed of my blog posts, public notes, public bookmarks, projects, and open-source
+          contributions.
+        </p>
+      </div>
+
+      <nav class="w-full md:w-fit flex justify-between items-center gap-6 text-slate-400">
+        <a href="/blog" class="hover:text-white font-bold transition-colors text-lg">
+          Blog
+        </a>
+        <a href="/projects" class="hover:text-white font-bold transition-colors text-lg">
+          Projects
+        </a>
+
+        <div onclick="document.getElementById('bio').scrollIntoView({ behavior: 'smooth'});"
+          class="cursor-pointer group relative inline-flex items-center justify-center px-6 py-2.5 text-base font-medium text-white bg-white/10 border border-white/20 rounded-full overflow-hidden transition-all duration-300 hover:bg-white hover:text-[#0a144b] hover:font-extrabold hover:shadow-xl hover:shadow-slate-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900">
+          <span class="mr-2">
+            My Bio
+          </span>
+          <svg class="w-4 h-4 transform group-hover:translate-y-1 transition-transform duration-300" fill="none"
+            stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+          </svg>
+        </div>
+      </nav>
+    </header>
+
+    <div class="flex-1 overflow-y-auto md:overflow-hidden min-h-0 pb-4 md:pb-0 pr-1 md:pr-0">
+
+      <div class="grid grid-cols-1 md:grid-cols-4 md:grid-rows-3 gap-4 md:h-full">
+
+        <!-- The biggest card -->
+        {{ $item := index .Highlighted 0 }}
+
+        {{if eq $item.Type "post"}}
+        <article
+          class="col-span-1 md:col-span-2 md:row-span-2 border border-slate-50 p-4 md:p-6 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative overflow-hidden min-h-[110px] md:min-h-0">
+
+          <div class="max-w-full">
+            <div
+              class="flex items-center gap-2 text-[10px] md:text-[11px] uppercase tracking-wider text-indigo-100 mb-2 md:mb-4 min-w-0">
+              <span class="text-sm font-medium">
+                {{formatDate $item.Post.UpdatedAt}}
+                {{if ne $item.Post.UpdatedAt $item.Post.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600">•</span>
+              <span title="A blog post."
+                class="text-xs font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [POST]
+              </span>
+            </div>
+
+            <h2
+              class="text-sm md:text-3xl font-medium md:font-bold text-white mb-0 md:mb-3 leading-snug md:leading-tight group-hover:text-indigo-200 transition-colors line-clamp-2 md:line-clamp-none">
+              <a href="/post/{{$item.Post.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Post.Title}}
+              </a>
+            </h2>
+
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm md:text-base pr-2 truncate relative z-10 pointer-events-none">
+              {{$item.Post.Content}}
+            </p>
+          </div>
+
+          <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+            {{ range split $item.Post.Tags "," }}
+            <a href="/tag/{{ . }}"
+              class="inline-block text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background hover:text-white transition-colors relative z-20 shrink-0">
+              {{ . }}
+            </a>
+            {{end}}
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "project"}}
+        <article
+          class="col-span-1 md:col-span-2 md:row-span-2 border border-slate-50 p-4 md:p-6 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative overflow-hidden min-h-[110px] md:min-h-0">
+
+          <div class="max-w-full">
+            <div
+              class="flex items-center gap-2 text-[10px] md:text-[11px] uppercase tracking-wider text-indigo-100 mb-2 md:mb-4 min-w-0">
+              <span class="text-sm font-medium">
+                {{formatDate $item.Project.UpdatedAt}}
+                {{if ne $item.Project.UpdatedAt $item.Project.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600">•</span>
+              <span title="A write-up and showcase of a side project that I built."
+                class="text-xs font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [PROJECT]
+              </span>
+            </div>
+
+            <h2
+              class="text-sm md:text-3xl font-medium md:font-bold text-white mb-0 md:mb-3 leading-snug md:leading-tight group-hover:text-indigo-200 transition-colors line-clamp-2 md:line-clamp-none">
+              <a href="/project/{{$item.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Project.Name}}
+              </a>
+            </h2>
+
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm md:text-base pr-2 truncate relative z-10 pointer-events-none">
+              {{$item.Project.Description}}
+            </p>
+          </div>
+
+          <div class="flex flex-col">
+            {{if $item.Project.DemoLink}}
+            <a href="{{$item.Project.DemoLink}}" target="_blank"
+              class="relative z-20 w-max text-lg font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mb-2">
+              Live Demo &rarr;
+            </a>
+            {{end}}
+
+            {{if $item.Project.RepoLink}}
+            <a href="{{$item.Project.RepoLink}}" target="_blank"
+              class="relative z-20 w-max text-lg font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
+              GitHub Repository &rarr;
+            </a>
+            {{end}}
+
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split $item.Project.Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="inline-block text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background hover:text-white transition-colors relative z-20 shrink-0">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "contribution"}}
+        <article
+          class="col-span-1 md:col-span-2 md:row-span-2 border border-slate-50 p-4 md:p-6 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative overflow-hidden min-h-[110px] md:min-h-0">
+
+          <div class="max-w-full">
+            <div
+              class="flex items-center gap-2 text-[10px] md:text-[11px] uppercase tracking-wider text-indigo-100 mb-2 md:mb-4 min-w-0">
+              <span class="text-sm font-medium">
+                {{formatDate $item.Contribution.UpdatedAt}}
+                {{if ne $item.Contribution.UpdatedAt $item.Contribution.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600">•</span>
+              <span title="A write-up of open-source contributions I’ve made."
+                class="text-xs font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [OPEN SOURCE CONTRIBUTION]
+              </span>
+            </div>
+
+            <h2
+              class="text-sm md:text-3xl font-medium md:font-bold text-white mb-0 md:mb-3 leading-snug md:leading-tight group-hover:text-indigo-200 transition-colors line-clamp-2 md:line-clamp-none">
+              <a href="/open-source-contribution/{{$item.Contribution.Slug}}"
+                class="before:absolute before:inset-0 before:z-0">
+                {{$item.Contribution.ProjectName}}
+              </a>
+            </h2>
+
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm md:text-base pr-2 truncate relative z-10 pointer-events-none">
+              {{$item.Contribution.ContributionSummary}}
+            </p>
+          </div>
+
+          <div class="flex flex-col">
+            <a href="{{$item.Contribution.Link}}" target="_blank"
+              class="relative z-20 w-max text-lg font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
+              See The Contribution &rarr;
+            </a>
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split $item.Contribution.Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="inline-block text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background hover:text-white transition-colors relative z-20 shrink-0">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{ $item := index .Highlighted 1 }}
+
+        {{if eq $item.Type "post"}}
+        <article
+          class="col-span-1 md:col-span-2 md:row-span-1 border border-slate-50 p-4 md:p-5 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0 relative">
+          <div>
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Post.UpdatedAt}}
+                {{if ne $item.Post.UpdatedAt $item.Post.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A blog post."
+                class="cursor-pointer text-xs font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10">
+                [POST]
+              </span>
+            </div>
+            <h2
+              class="text-sm md:text-2xl font-medium md:font-semibold text-white mb-0 md:mb-1 group-hover:text-indigo-100 transition-colors line-clamp-2 md:truncate">
+              <a href="/post/{{$item.Post.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Post.Title}}
+              </a>
+            </h2>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm md:text-base pr-2 truncate z-10 pointer-events-none">
+              {{$item.Post.Content}}
+            </p>
+          </div>
+
+          <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+            {{ range split $item.Post.Tags "," }}
+            <a href="/tag/{{ . }}"
+              class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+              {{ . }}
+            </a>
+            {{end}}
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "project"}}
+        <article
+          class="col-span-1 md:col-span-2 md:row-span-1 border border-slate-50 p-4 md:p-5 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0 relative">
+          <div>
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Project.UpdatedAt}}
+                {{if ne $item.Project.UpdatedAt $item.Project.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A write-up and showcase of a side project that I built."
+                class="cursor-pointer text-xs font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10">
+                [PROJECT]
+              </span>
+            </div>
+            <h2
+              class="text-sm md:text-2xl font-medium md:font-semibold text-white mb-0 md:mb-1 group-hover:text-indigo-100 transition-colors line-clamp-2 md:truncate">
+              <a href="/project/{{$item.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Project.Name}}
+              </a>
+            </h2>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm md:text-base pr-2 truncate relative z-10 pointer-events-none">
+              {{$item.Project.Description}}
+            </p>
+          </div>
+
+          <div class="flex flex-col">
+            {{if $item.Project.DemoLink}}
+            <a href="{{$item.Project.DemoLink}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mb-2">
+              Live Demo &rarr;
+            </a>
+            {{end}}
+
+            {{if $item.Project.RepoLink}}
+            <a href="{{$item.Project.RepoLink}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
+              GitHub Repository &rarr;
+            </a>
+            {{end}}
+
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split $item.Project.Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "contribution"}}
+        <article
+          class="col-span-1 md:col-span-2 md:row-span-1 border border-slate-50 p-4 md:p-5 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0 relative">
+          <div>
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Contribution.UpdatedAt}}
+                {{if ne $item.Contribution.UpdatedAt $item.Contribution.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A write-up of open-source contributions I’ve made."
+                class="cursor-pointer text-xs font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10">
+                [OPEN SOURCE CONTRIBUTION]
+              </span>
+            </div>
+            <h2
+              class="text-sm md:text-2xl font-medium md:font-semibold text-white mb-0 md:mb-1 group-hover:text-indigo-100 transition-colors line-clamp-2 md:truncate">
+              <a href="/open-source-contribution/{{$item.Contribution.Slug}}"
+                class="before:absolute before:inset-0 before:z-0">
+                {{$item.Contribution.ProjectName}}
+              </a>
+            </h2>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm md:text-base pr-2 truncate relative z-10 pointer-events-none">
+              {{$item.Contribution.ContributionSummary}}
+            </p>
+          </div>
+
+          <div class="flex flex-col">
+            <a href="{{$item.Contribution.Link}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
+              See The Contribution &rarr;
+            </a>
+
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split $item.Contribution.Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{ $item := index .Highlighted 2 }}
+
+        {{if eq $item.Type "post"}}
+        <article
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Post.UpdatedAt}}
+                {{if ne $item.Post.UpdatedAt $item.Post.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A blog post."
+                class="text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [POST]
+              </span>
+            </div>
+            <h3
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              <a href="/post/{{$item.Post.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Post.Title}}
+              </a>
+            </h3>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none">
+              {{$item.Post.Content}}
+            </p>
+          </div>
+
+          <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+            {{ range split $item.Post.Tags "," }}
+            <a href="/tag/{{ . }}"
+              class="text-sm px-2 py-1 bg-white/2 border border-white/5 w-fit text-slate-100 hover:bg-background relative z-20 shrink-0">
+              {{ . }}
+            </a>
+            {{end}}
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "project"}}
+        <article
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Project.UpdatedAt}}
+                {{if ne $item.Project.UpdatedAt $item.Project.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A write-up and showcase of a side project that I built."
+                class="text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [PROJECT]
+              </span>
+            </div>
+            <h3
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              <a href="/project/{{$item.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Project.Name}}
+              </a>
+            </h3>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none mb-3">
+              {{$item.Project.Description}}
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            {{if $item.Project.DemoLink}}
+            <a href="{{$item.Project.DemoLink}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              Live Demo &rarr;
+            </a>
+            {{end}}
+
+            {{if $item.Project.RepoLink}}
+            <a href="{{$item.Project.RepoLink}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              GitHub Repository &rarr;
+            </a>
+            {{end}}
+
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split $item.Project.Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "contribution"}}
+        <article
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Contribution.UpdatedAt}}
+                {{if ne $item.Contribution.UpdatedAt $item.Contribution.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A write-up of open-source contributions I’ve made."
+                class="text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [OPEN SOURCE CONTRIBUTION]
+              </span>
+            </div>
+            <h3
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              <a href="/open-source-contribution/{{$item.Contribution.Slug}}"
+                class="before:absolute before:inset-0 before:z-0">
+                {{$item.Contribution.ProjectName}}
+              </a>
+            </h3>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none mb-3">
+              {{$item.Contribution.ContributionSummary}}
+            </p>
+          </div>
+
+          <div class="flex flex-col">
+            <a href="{{$item.Contribution.Link}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              See The Contribution &rarr;
+            </a>
+
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split $item.Contribution.Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{ $item := index .Feed 0 }}
+
+        {{if eq $item.Type "post"}}
+        <article
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Post.UpdatedAt}}
+                {{if ne $item.Post.UpdatedAt $item.Post.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A blog post."
+                class="text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [POST]
+              </span>
+            </div>
+            <h3
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              <a href="/post/{{$item.Post.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Post.Title}}
+              </a>
+            </h3>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none">
+              {{$item.Post.Content}}
+            </p>
+          </div>
+
+          <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+            {{ range split $item.Post.Tags "," }}
+            <a href="/tag/{{ . }}"
+              class="text-sm px-2 py-1 bg-white/2 border border-white/5 w-fit text-slate-100 hover:bg-background relative z-20 shrink-0">
+              {{ . }}
+            </a>
+            {{end}}
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "project"}}
+        <article
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Project.UpdatedAt}}
+                {{if ne $item.Project.UpdatedAt $item.Project.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A write-up and showcase of a side project that I built."
+                class="text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [PROJECT]
+              </span>
+            </div>
+            <h3
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              <a href="/project/{{$item.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Project.Name}}
+              </a>
+            </h3>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none mb-3">
+              {{$item.Project.Description}}
+            </p>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            {{if $item.Project.DemoLink}}
+            <a href="{{$item.Project.DemoLink}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              Live Demo &rarr;
+            </a>
+            {{end}}
+
+            {{if $item.Project.RepoLink}}
+            <a href="{{$item.Project.RepoLink}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              GitHub Repository &rarr;
+            </a>
+            {{end}}
+
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split $item.Project.Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "contribution"}}
+        <article
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Contribution.UpdatedAt}}
+                {{if ne $item.Contribution.UpdatedAt $item.Contribution.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A write-up of open-source contributions I’ve made."
+                class="text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [OPEN SOURCE CONTRIBUTION]
+              </span>
+            </div>
+            <h3
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              <a href="/open-source-contribution/{{$item.Contribution.Slug}}"
+                class="before:absolute before:inset-0 before:z-0">
+                {{$item.Contribution.ProjectName}}
+              </a>
+            </h3>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none mb-3">
+              {{$item.Contribution.ContributionSummary}}
+            </p>
+          </div>
+
+          <div class="flex flex-col">
+            <a href="{{$item.Contribution.Link}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              See The Contribution &rarr;
+            </a>
+
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split $item.Contribution.Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "note"}}
+        <article
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Note.UpdatedAt}}
+                {{if ne $item.Note.UpdatedAt $item.Note.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span
+                title="A public note is something that I write for myself, but choose to publish it in my blog anyway. Not as much edited as [POST]"
+                class="text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [PUBLIC NOTE]
+              </span>
+            </div>
+            <h3
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              <a href="/note/{{$item.Note.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Note.Title}}
+              </a>
+            </h3>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none">
+              {{$item.Note.Content}}
+            </p>
+          </div>
+          <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+            {{ range split $item.Note.Tags "," }}
+            <a href="/tag/{{ . }}"
+              class="text-sm px-2 py-1 bg-white/2 border border-white/5 w-fit text-slate-100 hover:bg-background relative z-20 shrink-0">
+              {{ . }}
+            </a>
+            {{end}}
+          </div>
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        {{if eq $item.Type "bookmark"}}
+        <article
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+              <span class="text-xs font-medium relative z-10 pointer-events-none">
+                {{formatDate $item.Bookmark.UpdatedAt}}
+                {{if ne $item.Bookmark.UpdatedAt $item.Bookmark.CreatedAt}}
+                <span class="font-semibold">(updated)</span>
+                {{end}}
+              </span>
+              <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+              <span title="A cool link that I think worth sharing."
+                class="text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10 cursor-pointer">
+                [PUBLIC BOOKMARK]
+              </span>
+            </div>
+            <h3
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              <a href="/bookmark/{{$item.Bookmark.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                {{$item.Bookmark.Title}}
+              </a>
+            </h3>
+            <p
+              class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none mb-3">
+              {{$item.Bookmark.Description}}
+            </p>
+          </div>
+          <div class="flex flex-col">
+            <a href="{{$item.Bookmark.URL}}" target="_blank"
+              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              See The Link &rarr;
+            </a>
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split $item.Bookmark.Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+          <div
+            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+            Read →
+          </div>
+        </article>
+        {{end}}
+
+        <div class="col-span-1 md:col-span-4 relative pt-2 md:pt-0">
+
+          <div id="article-carousel"
+            class="flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory pb-4 relative z-0 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-white/5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/40 [&::-webkit-scrollbar-thumb]:rounded-full transition-colors min-h-[110px] md:h-full md:max-h-full">
+
+            {{ range $index, $element := .Feed }}
+
+            {{if eq $index 0}} {{continue}} {{end}}
+
+            {{if eq .Type "post"}}
+            <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+                  <span class="text-xs font-medium relative z-10 pointer-events-none">
+                    {{formatDate .Post.UpdatedAt}}
+                    {{if ne .Post.UpdatedAt .Post.CreatedAt}}
+                    <span class="font-semibold">(updated)</span>
+                    {{end}}
+                  </span>
+                  <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+                  <span title="A blog post."
+                    class="cursor-pointer text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10">
+                    [POST]
+                  </span>
+                </div>
+                <h3
+                  class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+                  <a href="/post/{{.Post.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                    {{.Post.Title}}
+                  </a>
+                </h3>
+                <p
+                  class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none">
+                  {{.Post.Content}}
+                </p>
+              </div>
+
+              <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+                {{ range split .Post.Tags "," }}
+                <a href="/tag/{{ . }}"
+                  class="text-sm px-2 py-1 bg-white/2 border border-white/5 w-fit text-slate-100 hover:bg-background relative z-20 shrink-0">
+                  {{ . }}
+                </a>
+                {{end}}
+              </div>
+              <div
+                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+                Read →
+              </div>
+            </article>
+            {{end}}
+
+            {{if eq .Type "project"}}
+            <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+                  <span class="text-xs font-medium relative z-10 pointer-events-none">
+                    {{formatDate .Project.UpdatedAt}}
+                    {{if ne .Project.UpdatedAt .Project.CreatedAt}}
+                    <span class="font-semibold">(updated)</span>
+                    {{end}}
+                  </span>
+                  <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+                  <span title="A write-up and showcase of a side project that I built."
+                    class="cursor-pointer text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10">
+                    [PROJECT]
+                  </span>
+                </div>
+                <h3
+                  class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+                  <a href="/project/{{.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                    {{.Project.Name}}
+                  </a>
+                </h3>
+                <p
+                  class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none mb-3">
+                  {{.Project.Description}}
+                </p>
+              </div>
+              <div class="flex flex-col gap-1">
+                {{if .Project.DemoLink}}
+                <a href="{{.Project.DemoLink}}" target="_blank"
+                  class="relative z-20 inline-block text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer wrap-break-words">
+                  Live Demo &rarr;
+                </a>
+                {{end}}
+                {{if .Project.RepoLink}}
+                <a href="{{.Project.RepoLink}}" target="_blank"
+                  class="relative z-20 inline-block text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer wrap-break-words">
+                  GitHub Repository &rarr;
+                </a>
+                {{end}}
+                <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+                  {{ range split .Project.Tags "," }}
+                  <a href="/tag/{{ . }}"
+                    class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                    {{ . }}
+                  </a>
+                  {{end}}
+                </div>
+              </div>
+              <div
+                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+                Read →
+              </div>
+            </article>
+            {{end}}
+
+            {{if eq .Type "contribution"}}
+            <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+                  <span class="text-xs font-medium relative z-10 pointer-events-none">
+                    {{formatDate .Contribution.UpdatedAt}}
+                    {{if ne .Contribution.UpdatedAt .Contribution.CreatedAt}}
+                    <span class="font-semibold">(updated)</span>
+                    {{end}}
+                  </span>
+                  <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+                  <span title="A write-up of open-source contributions I've made."
+                    class="cursor-pointer text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10">
+                    [OPEN SOURCE CONTRIBUTION]
+                  </span>
+                </div>
+                <h3
+                  class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+                  <a href="/open-source-contribution/{{.Contribution.Slug}}"
+                    class="before:absolute before:inset-0 before:z-0">
+                    {{.Contribution.ProjectName}}
+                  </a>
+                </h3>
+                <p
+                  class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none mb-3">
+                  {{.Contribution.ContributionSummary}}
+                </p>
+              </div>
+              <div class="flex flex-col">
+                <a href="{{.Contribution.Link}}" target="_blank"
+                  class="relative z-20 inline-block text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer wrap-break-words">
+                  See The Contribution &rarr;
+                </a>
+                <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+                  {{ range split .Contribution.Tags "," }}
+                  <a href="/tag/{{ . }}"
+                    class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                    {{ . }}
+                  </a>
+                  {{end}}
+                </div>
+              </div>
+              <div
+                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+                Read →
+              </div>
+            </article>
+            {{end}}
+
+            {{if eq .Type "note"}}
+            <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+                  <span class="text-xs font-medium relative z-10 pointer-events-none">
+                    {{formatDate .Note.UpdatedAt}}
+                    {{if ne .Note.UpdatedAt .Note.CreatedAt}}
+                    <span class="font-semibold">(updated)</span>
+                    {{end}}
+                  </span>
+                  <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+                  <span
+                    title="A public note is something that I write for myself, but choose to publish it in my blog anyway. Not as much edited as [POST]"
+                    class="cursor-pointer text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10">
+                    [PUBLIC NOTE]
+                  </span>
+                </div>
+                <h3
+                  class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+                  <a href="/note/{{.Note.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                    {{.Note.Title}}
+                  </a>
+                </h3>
+                <p
+                  class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none">
+                  {{.Note.Content}}
+                </p>
+              </div>
+              <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+                {{ range split .Note.Tags "," }}
+                <a href="/tag/{{ . }}"
+                  class="text-sm px-2 py-1 bg-white/2 border border-white/5 w-fit text-slate-100 hover:bg-background relative z-20 shrink-0">
+                  {{ . }}
+                </a>
+                {{end}}
+              </div>
+              <div
+                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+                Read →
+              </div>
+            </article>
+            {{end}}
+
+            {{if eq .Type "bookmark"}}
+            <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              <div class="flex flex-col">
+                <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
+                  <span class="text-xs font-medium relative z-10 pointer-events-none">
+                    {{formatDate .Bookmark.UpdatedAt}}
+                    {{if ne .Bookmark.UpdatedAt .Bookmark.CreatedAt}}
+                    <span class="font-semibold">(updated)</span>
+                    {{end}}
+                  </span>
+                  <span class="hidden md:inline text-slate-600 relative z-10 pointer-events-none">•</span>
+                  <span title="A cool link that I think worth sharing."
+                    class="cursor-pointer text-[11px] font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background relative z-10">
+                    [PUBLIC BOOKMARK]
+                  </span>
+                </div>
+                <h3
+                  class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+                  <a href="/bookmark/{{.Bookmark.Slug}}" class="before:absolute before:inset-0 before:z-0">
+                    {{.Bookmark.Title}}
+                  </a>
+                </h3>
+                <p
+                  class="hidden md:block text-gray-300 font-medium leading-relaxed text-sm pr-2 truncate relative z-10 pointer-events-none mb-3">
+                  {{.Bookmark.Description}}
+                </p>
+              </div>
+              <div class="flex flex-col">
+                <a href="{{.Bookmark.URL}}" target="_blank"
+                  class="relative z-20 inline-block text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer wrap-break-words">
+                  See The Link &rarr;
+                </a>
+                <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+                  {{ range split .Bookmark.Tags "," }}
+                  <a href="/tag/{{ . }}"
+                    class="text-sm px-2 py-1 bg-white/2 border border-white/5 text-slate-100 hover:bg-background relative z-20 shrink-0">
+                    {{ . }}
+                  </a>
+                  {{end}}
+                </div>
+              </div>
+              <div
+                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
+                Read →
+              </div>
+            </article>
+            {{end}}
+
+            {{if eq $index 4}}
+            <button
+              onclick="document.getElementById('end-articles').scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });"
+              class="snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-full">
+              <svg class="w-6 h-6 text-indigo-300 group-hover:text-white group-hover:translate-x-1 transition-all"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7">
+                </path>
+              </svg>
+              <span
+                class="text-[10px] text-indigo-300 group-hover:text-white mt-4 font-bold uppercase tracking-widest hidden md:block"
+                style="writing-mode: vertical-rl; text-orientation: mixed;">Next</span>
+            </button>
+
+            <button
+              onclick="document.getElementById('start-articles').scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });"
+              class="snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-full">
+              <svg class="w-6 h-6 text-indigo-300 group-hover:text-white group-hover:-translate-x-1 transition-all"
+                fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7">
+                </path>
+              </svg>
+              <span
+                class="text-[10px] text-indigo-300 group-hover:text-white mt-4 font-bold uppercase tracking-widest hidden md:block"
+                style="writing-mode: vertical-rl; text-orientation: mixed;">Prev</span>
+            </button>
+            {{end}}
+
+            {{end}}
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="relative z-10 w-full bg-background flex flex-col items-center">
+
+    <div class="absolute inset-y-0 left-0">
+      <nav
+        class="hidden z-10 lg:flex flex-col justify-center gap-6 sticky top-[50vh] transform -translate-y-1/2 ml-5 h-max">
+        <a onclick="scrollToTarget('bio')"
+          class="dot w-2 h-2 rounded-full bg-white cursor-pointer transition duration-300">
+        </a>
+        <a onclick="scrollToTarget('open_source')"
+          class="dot w-2 h-2 rounded-full bg-white cursor-pointer transition duration-300">
+        </a>
+        <a onclick="scrollToTarget('work_experienece')"
+          class="dot w-2 h-2 rounded-full bg-white cursor-pointer transition duration-300">
+        </a>
+        <!--
+        <a onclick="scrollToTarget('timeline')"
+          class="dot w-2 h-2 rounded-full bg-white cursor-pointer transition duration-300">
+        </a>
+        -->
+        <a onclick="scrollToTarget('popular_blog')"
+          class="dot w-2 h-2 rounded-full bg-white cursor-pointer transition duration-300">
+        </a>
+      </nav>
+    </div>
+
+    <main id="bio"
+      class="flex min-h-screen max-w-4xl flex-col justify-center bg-inherit px-6 mb-12.5 text-white z-10 sm:px-8 lg:items-center lg:px-16 lg:pt-20">
+      <div class="flex w-full flex-col justify-between lg:flex-row">
+        <div class="md:-mt-10 mb-6 flex flex-col gap-y-3 sm:gap-y-5 items-start lg:mb-0 lg:w-7/12">
+          <p class="text-lg tracking-widest">
+            Hi I am,
+          </p>
+          <h1 class="text-4xl md:text-5xl lg:text-6xl">
+            EdwardJPT
+          </h1>
+          <p class="text-left text-base leading-relaxed sm:text-xl">
+            A full-stack web developer with passion for low level programming. This
+            passion has led me to explore
+            <a href="/tag/database-internals" class="font-bold underline whitespace-normal">
+              database internals</a>
+            and
+            <a href="/tag/distributed-systems" class="font-bold underline">
+              distributed systems</a>.
+            Other than those two,
+            <br class="hidden lg:block">
+            I also tinker around with other
+            <a href="/tags" class="font-bold underline">
+              topics</a> too.
+            Though I lean heavily toward the backend now,
+            I’m no stranger to the frontend, as I built the entire of
+            <a href="https://github.com/EdwardJPT/GoBlog" class="font-bold underline">this website</a> myself.
+            Outside of web development, I also enjoy solving numerical and algorithmic problems,
+            as found on sites like
+            <a href="/tag/project-euler" class="font-bold underline">
+              Project Euler</a>,
+            <a href="/tag/cses" class="font-bold underline">
+              CSES</a>,
+            and
+            <a href="/tag/codeforces" class="font-bold underline">
+              Codeforces</a>.
+          </p>
+          <p class="text-left text-base leading-relaxed sm:text-xl">
+            So, here's my site. Enjoy your stay!
+          </p>
+        </div>
+
+        <div class="mb-6 flex flex-col items-start lg:mb-0 lg:w-4/12 lg:items-end lg:justify-evenly md:text-lg">
+          <div class="items-between mb-6 flex flex-col lg:mb-0 lg:text-right">
+            <p class="md:mb-2">CURRENTLY:</p>
+            <div>
+              <p><b>Fullstack Developer</b></p>
+              <p>@ Freelance</p>
+              <a href="mailto:email@edward.wtf">
+                <b>Available for work!</b>
+              </a>
+            </div>
+          </div>
+
+          <div class="items-between flex flex-col lg:text-right">
+            <p class="mb-2">Tools:</p>
+            <p>
+              Go, Typescript,
+              <br class="hidden lg:block">
+              PostgreSQL, SQLite,
+              <br class="hidden lg:block">
+              HTML, TailwindCSS, React.js,
+              <br class="hidden lg:block">
+              Preact.js, Next.js, and HTMX.
+            </p>
+          </div>
+          <!--
+          <div class="items-between flex flex-col lg:text-right">
+            <p class="mb-2">Open-source contributions:</p>
+            <p>Tinygrad, Chi(Go), NodeJS Internal, ExpressJS</p>
+          </div>
+          -->
+        </div>
+      </div>
+
+      <div class="relative flex flex-row justify-center text-center text-base sm:mt-16 sm:text-lg" id="links">
+        <a href="/about"
+          class="navLink mx-2 my-3 flex w-20 items-center justify-center border border-white px-3 py-4 select-none hover:bg-hover hover:font-bold sm:w-36">
+          About
+        </a>
+        <a href="/blog"
+          class="navLink mx-2 my-3 flex w-20 items-center justify-center border border-white px-3 py-4 select-none hover:bg-hover hover:font-bold sm:w-36">
+          Blog
+        </a>
+        <a href="/projects"
+          class="navLink mx-2 my-3 flex w-20 items-center justify-center border border-white px-3 py-4 select-none hover:bg-hover hover:font-bold sm:w-36">
+          Projects
+        </a>
+      </div>
+    </main>
+
+    <section class="relative w-full flex flex-col items-center px-6 pb-6 text-white">
+      <h2 id="open_source" class="mt-8 mb-4 scroll-mt-20 text-2xl font-bold sm:text-3xl lg:mb-8">
+        Projects & Open Source Contributions
+      </h2>
+      <div>
+        {{range .SelectedWorks}}
+        <a
+            {{if eq .Type "project" }} href="/project/{{.Slug}}" {{end}}
+            {{if eq .Type "open-source-contribution"}} href="/open-source-contribution/{{.Slug}}" {{end}}
+            class="group mb-10 grid gap-4 border-l pt-3 pl-2 sm:gap-8 sm:py-3 sm:pb-4 lg:grid-cols-10 hover:bg-hover"
+        >
+          <div class="space-y-3 lg:col-span-6">
+            <h3 class="text-lg font-medium sm:text-xl">
+              <b>{{.Title}}</b>
+
+              {{if eq .Type "project"}}
+              <span title="A write-up and showcase of a side project that I built."
+                class="cursor-pointer ml-2 text-xs font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background">
+                [PROJECT]
+              </span>
+              {{end}}
+
+              {{if eq .Type "open-source-contribution"}}
+              <span title="A write-up of open-source contributions I’ve made."
+                class="cursor-pointer ml-2 text-xs font-semibold bg-hover p-1 group-hover:bg-white group-hover:text-background">
+                [OPEN SOURCE CONTRIBUTION]
+              </span>
+              {{end}}
+            </h3>
+            <p
+              class="h-fit md:max-h-[85px] overflow-hidden group-hover:max-h-fit transition-all duration-300 ease-in-out max-w-lg font-medium relative">
+              {{.HomePageDescription}}
+            </p>
+          </div>
+
+          <div
+            class="flex flex-wrap lg:flex-col justify-center items-center gap-2 text-base font-semibold sm:text-lg lg:min-w-78.75 lg:col-span-4 lg:grid-cols-2 lg:mt-0 lg:items-end">
+
+            {{with $techStack := index $.TechStacks .RowID}}
+            <!-- Container for the 1D Array -->
+            <div
+              class="flex flex-wrap lg:flex-col justify-center items-center gap-2 text-base font-semibold sm:text-lg lg:mt-0 lg:items-end">
+              <!-- Loop through the flattened array (e.g., "Go", "HTML, TailwindCSS, PreactJS") -->
+              {{range $groupString := $techStack}}
+              <div>
+                <!-- Split the string by comma and loop through the resulting skills -->
+                {{range $skill := split $groupString ","}}
+                <span class="px-2 py-1">
+                  {{$skill}}
+                </span>
+                {{end}}
+              </div>
+              {{end}}
+            </div>
+            {{else}}
+            <div class="mt-1 text-xs text-gray-400 italic">No Tech Stack Used</div>
+            {{end}}
+          </div>
+        </a>
+        {{end}}
+      </div>
+
+      <a class="mx-auto border border-white px-3 py-3 text-lg hover:bg-hover lg:text-xl" href="/projects">
+        See more
+      </a>
+    </section>
+
+    <section class="relative w-full flex flex-col items-center px-6 pb-6 mb-17.5 text-white">
+      <h2 id="work_experienece" class="mt-16 mb-4 scroll-mt-20 text-2xl font-bold sm:text-3xl lg:mb-8">
+        Work Experience and Education
+      </h2>
+      <div>
+        <div class="grid max-w-7xl gap-4 border-b py-6 sm:gap-8 sm:py-8 lg:grid-cols-8">
+          <div class="lg:col-span-2">
+            <div class="text-base font-medium sm:text-lg text-slate-200">
+              Nov 2023 - Present
+            </div>
+          </div>
+          <div class="space-y-3 lg:col-span-4">
+            <div>
+              <h3 class="text-lg font-medium sm:text-xl">
+                Fullstack Web Developer
+              </h3>
+              <div class="">
+                <b>Freelance</b>
+              </div>
+            </div>
+            <p class="max-w-lg font-medium">
+              Designed and developed new websites from scratch based on clients requests, as well as enhanced the
+              existing ones.
+            </p>
+          </div>
+          <div class="mt-2 flex max-w-2xl flex-wrap justify-center gap-2 lg:col-span-2 lg:mt-0 lg:justify-end">
+            <div class="flex w-full justify-center p-0 font-medium lg:justify-end">
+              <span class="px-2 text-base">
+                Go
+              </span>
+              <span class="px-2 text-base">
+                Typescript
+              </span>
+              <span class="px-2 text-base">
+                SQLite
+              </span>
+            </div>
+            <div class="flex w-full justify-center p-0 font-medium lg:justify-end">
+              <span class="px-2 text-base">
+                PreactJS
+              </span>
+              <span class="px-2 text-base">
+                HTML
+              </span>
+              <span class="px-2 text-base">
+                TailwindCSS
+              </span>
+            </div>
+            <div class="flex w-full justify-center p-0 font-medium lg:justify-end">
+              <span class="px-2 text-base">
+                Nginx
+              </span>
+              <span class="px-2 text-base">
+                Docker
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid max-w-7xl gap-4 border-b py-6 sm:gap-8 sm:py-8 lg:grid-cols-8">
+          <div class="lg:col-span-2">
+            <div class="text-base font-medium sm:text-lg text-slate-200">
+              Nov 2020 - Nov 2023
+            </div>
+          </div>
+          <div class="space-y-3 lg:col-span-4">
+            <div>
+              <h3 class="text-lg font-medium sm:text-xl">
+                Fullstack Web Developer
+              </h3>
+              <div class="">
+                <b>Bandung FE Institute</b>
+              </div>
+            </div>
+            <p class="max-w-lg font-medium">
+              Developed and maintained internal tools of a web based application based on the needs of data scientists
+              and other stakeholders in
+              the institute.
+            </p>
+          </div>
+          <div class="mt-2 flex max-w-2xl flex-wrap justify-center gap-2 lg:col-span-2 lg:mt-0 lg:justify-end">
+            <div class="flex w-full justify-center p-0 font-medium lg:justify-end">
+              <span class="px-2 text-base">
+                NodeJS
+              </span>
+              <span class="px-2 text-base">
+                Javascript/TypeScript
+              </span>
+            </div>
+            <div class="flex w-full justify-center p-0 font-medium lg:justify-end">
+              <span class="px-2 text-base">
+                ReactJS
+              </span>
+              <span class="px-2 text-base">
+                NextJS
+              </span>
+              <span class="px-2 text-base">
+                HTML
+              </span>
+              <span class="px-2 text-base">
+                CSS
+              </span>
+            </div>
+            <div class="flex w-full justify-center p-0 font-medium lg:justify-end">
+              <span class="px-2 text-base">
+                LeafletJS
+              </span>
+              <span class="px-2 text-base">
+                D3JS
+              </span>
+            </div>
+            <div class="flex w-full justify-center p-0 font-medium lg:justify-end">
+              <span class="px-2 text-base">
+                PostgreSQL
+              </span>
+              <span class="px-2 text-base">
+                SQLite
+              </span>
+              <span class="px-2 text-base">
+                Elasticsearch
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid max-w-7xl gap-4 border-b py-6 sm:gap-8 sm:py-8 lg:grid-cols-8">
+          <div class="lg:col-span-2">
+            <div class="text-base font-medium sm:text-lg text-slate-200">
+              Aug 2016 - July 2024<br> <span class="text-[15px]">(including 3 semesters break)</span>
+            </div>
+          </div>
+          <div class="space-y-3 lg:col-span-4">
+            <div>
+              <h3 class="text-lg font-medium sm:text-xl">
+                Bachelor in Physics
+              </h3>
+              <div class="">
+                <b>Universitas Gadjah Mada</b>
+              </div>
+            </div>
+            <p class="max-w-lg font-medium">
+              Thesis: <b>Refractive Index Prediction from Spectroscopy Ellipsometry Measurement with Machine
+                Learning</b>
+            </p>
+          </div>
+          <div class="mt-2 flex max-w-2xl flex-wrap justify-center gap-2 lg:col-span-2 lg:mt-0 lg:justify-end">
+            <div class="flex w-full justify-center p-0 font-medium lg:justify-end">
+              <span class="px-2 text-base">
+                C++
+              </span>
+              <span class="px-2 text-base">
+                Python
+              </span>
+            </div>
+            <!-- This one has different width-->
+            <div class="flex w-full lg:w-77.5 justify-center p-0 font-medium lg:justify-end">
+              <span class="px-2 text-base">
+                Numpy
+              </span>
+              <span class="px-2 text-base">
+                Pandas
+              </span>
+              <!-- This one has different width-->
+              <span class="w-40 px-2 text-base">
+                Keras/Tensorflow
+              </span>
+            </div>
+            <div class="flex w-full lg:w-95 justify-center p-0 font-medium lg:justify-end">
+              <span class="w-45 px-2 text-base">
+                Numerical Methods
+              </span>
+              <span class="w-41 px-2 text-base">
+                Machine Learning
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="popular_blog"
+      class="relative flex min-h-screen w-full max-w-5xl flex-col items-center px-6 md:px-0 py-16 text-white">
+      <div class="space-y-8 sm:space-y-10">
+        <h2 class="text-2xl font-bold sm:text-3xl">
+          Selected Writings
+        </h2>
+
+        <div class="grid gap-6 font-sans sm:gap-4 lg:grid-cols-2">
+          {{range .SelectedWritings}}
+          <div
+            class="relative group flex flex-col h-fit min-h-80 border p-3 bg-hover/25 hover:bg-hover hover:shadow-lg sm:p-4">
+            <div class="space-y-4">
+              <h3 class="line-clamp-1 text-lg font-medium sm:text-xl">
+                <a href='/{{.Type}}/{{.Slug}}' class="before:absolute before:inset-0 before:z-0">
+                  <b>{{.Title}}</b>
+                </a>
+              </h3>
+              <div class="flex items-center justify-between text-base font-medium">
+                {{formatDate .UpdatedAt}}
+              </div>
+              <p class="line-clamp-6 font-medium text-base leading-relaxed">
+                {{.Content}}
+              </p>
+            </div>
+
+            <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
+              {{ range split .Tags "," }}
+              <a href="/tag/{{ . }}"
+                class="text-sm px-2 py-1 bg-white/2.5 border border-white/5 w-fit text-slate-100 hover:bg-background relative z-20 shrink-0 cursor-pointer">
+                {{ . }}
+              </a>
+              {{end}}
+            </div>
+          </div>
+          {{end}}
+        </div>
+
+        <a class="absolute left-1/2 mx-auto -translate-x-1/2 transform border border-white px-3 py-3 text-lg hover:bg-hover lg:text-xl"
+          href="/blog">
+          See more
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="min-w-full bg-background">
+    {{template "footer" .}}
+  </footer>
+
+  <script>
+    // Force the page to be always scroll to the top when refresh
+    // window.onbeforeunload = () => window.scrollTo(0, 0);
+
+    // For the effect to the buttons when the page is scrolled down
+    const handleScroll = () => {
+      const position = window.pageYOffset;
+      if (position >= linksY) {
+        links.classList.add("fixedLinks");
+        navLinks[0].classList.add("fixedButton");
+        navLinks[1].classList.add("fixedButton");
+        navLinks[2].classList.add("fixedButton");
+      }
+      else {
+        links.classList.remove("fixedLinks");
+        navLinks[0].classList.remove("fixedButton");
+        navLinks[1].classList.remove("fixedButton");
+        navLinks[2].classList.remove("fixedButton");
+      }
+    }
+
+    // add the event listener to all the links for the feature above
+    window.addEventListener("scroll", handleScroll, {passive: true});
+    // look up the position of the links button
+    const links = document.getElementById("links");
+    linksY = links.getBoundingClientRect().top;
+    const navLinks = document.querySelectorAll(".navLink");
+
+    /*
+    // For the timeline feature
+    const dates = document.querySelectorAll("div[date]");
+    const eventBox = document.getElementById("event");
+    const dateHappened = document.getElementById("date");
+
+    const handleHover = (event) => {
+      eventBox.style.display = 'flex';
+      let date = event.target.attributes.date.value;
+      date = date.split("-");
+      dateHappened.textContent = date[2] + " " + date[1] + " " + date[0];
+    }
+
+    const handleClick = (event) => {
+      let date = event.target.attributes.date.value;
+      date = date.split("-");
+      dateHappened.textContent = date[2] + " " + date[1] + " " + date[0];
+
+      // remove the event listener
+      dates.forEach(date => date.removeEventListener("mouseover", handleHover));
+
+      // add the event listener again after 3 seconds
+      setTimeout(() => {
+        dates.forEach(date => date.addEventListener("mouseover", handleHover));
+      }, 3000);
+    }
+
+    dates.forEach(date => {
+      date.addEventListener("mouseover", handleHover);
+      date.addEventListener("click", handleClick)
+    });
+    */
+
+    function scrollToTarget(idTarget) {
+      const targetDiv = document.getElementById(idTarget);
+      if (targetDiv) {
+        targetDiv.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+          top: "500px",
+        });
+      }
+    }
+  </script>
+</body>
+
+</html>
+{{end}}

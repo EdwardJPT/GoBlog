@@ -1,0 +1,31 @@
+.fixedLinks {
+    position: fixed !important;
+    top: 0px !important;
+    left: 0px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100vw !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background-color: #100340 !important;
+    z-index: 2 !important;
+}
+
+.fixedButton {
+    padding: 10px 0px !important;
+    margin: 0 !important;
+    font-size: 20px;
+    border: 0px solid !important;
+    width: 250px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+}
+
+@media (max-width: 640px) {
+    .fixedButton {
+        font-size: 16px;
+    }
+}

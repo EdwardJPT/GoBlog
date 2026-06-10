@@ -1,0 +1,80 @@
+{{define "bookmarks-form"}}
+<div class="mb-8">
+  <div class="flex items-center justify-between">
+    <div class="text-white">
+      {{if .IsEdit}}
+      <h1 class="text-3xl font-bold">Edit Bookmark</h1>
+      <p class="mt-2">Update your bookmark</p>
+      {{else}}
+      <h1 class="text-3xl font-bold">New Bookmark</h1>
+      <p class="mt-2">Create a new bookmark</p>
+      {{end}}
+    </div>
+    <a href="/nimda/bookmarks" class="text-white hover:text-amber-100">← Back to bookmarks</a>
+  </div>
+</div>
+
+{{if .Error}}
+<div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+  <p class="text-red-800">{{.Error}}</p>
+</div>
+{{end}}
+
+<form method="POST" {{if .IsEdit}} action="/nimda/bookmarks/{{.ID}}" {{else}} action="/nimda/bookmarks" {{end}}
+  class="bg-white rounded-lg shadow">
+  <div class="p-6 space-y-6">
+    <!-- Title -->
+    <div>
+      <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
+      <input type="text" id="title" name="title" value="{{.Bookmark.Title}}" required
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        placeholder="Enter bookmark title">
+    </div>
+
+    <!-- URL -->
+    <div>
+      <label for="url" class="block text-sm font-medium text-gray-700 mb-2">URL *</label>
+      <input type="url" id="url" name="url" value="{{.Bookmark.URL}}" required
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        placeholder="https://example.com">
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+      <textarea id="description" name="description" rows="4"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        placeholder="Brief description of the bookmark">{{.Bookmark.Description}}</textarea>
+    </div>
+
+    <!-- Tags -->
+    <div>
+      <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
+      <input type="text" id="tags" name="tags" value="{{.Bookmark.Tags}}"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        placeholder="tag1, tag2, tag3">
+      <p class="text-sm text-gray-500 mt-1">Comma-separated tags</p>
+    </div>
+
+    <!-- Status -->
+    <div>
+      <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+      <select id="status" name="status"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+        <option value="draft" {{if eq .Bookmark.Status "draft" }}selected{{end}}>Draft</option>
+        <option value="published" {{if eq .Bookmark.Status "published" }}selected{{end}}>Published</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between">
+    <a href="/nimda/bookmarks"
+      class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+      Cancel
+    </a>
+    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+      {{if .IsEdit}}Update{{else}}Create{{end}} Bookmark
+    </button>
+  </div>
+</form>
+{{end}}

@@ -1,0 +1,277 @@
+{{define "works-list"}}
+<div class="bg-white rounded-lg shadow overflow-hidden">
+  {{if .Works}}
+  <table class="min-w-full divide-y divide-gray-200">
+    <thead class="bg-gray-50">
+      <tr>
+        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Name</th>
+        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Type</th>
+        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Tags</th>
+        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Description</th>
+        <th class="px-6 py-3 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody class="bg-white divide-y-0">
+      {{range .Works}}
+
+      <!-- Main Work Row -->
+      <tr class="odd:bg-gray-200">
+        <td class="px-6 pt-4 pb-1"> <!-- Less bottom padding to connect with tech stack -->
+          <div class="text-base font-medium text-gray-900 max-w-125 break-all">
+            {{.Title}}
+          </div>
+        </td>
+        <td class="px-6 pt-4 pb-1">
+          <div class="text-base font-semibold text-slate-500 max-w-125 break-all">
+            {{.Type}}
+          </div>
+        </td>
+        <td class="px-6 pt-4 pb-1 max-w-75">
+          <div class="text-sm text-gray-900">
+            {{if .Tags}}
+            {{range $i, $tag := split .Tags ","}}
+            <span class="inline-block bg-gray-100 text-gray-900 px-2 py-1 rounded text-sm mr-1 mb-1">{{$tag}}</span>
+            {{end}}
+            {{else}}
+            <span class="text-gray-400 text-xs">No tags</span>
+            {{end}}
+          </div>
+        </td>
+        <td class="px-6 pt-4 pb-1">
+          <div class="text-[15px] text-gray-500 max-w-md line-clamp-3">{{.Description}}</div>
+        </td>
+        <td class="px-6 pt-4 pb-1 whitespace-nowrap text-sm font-medium">
+          <button onclick="toggleBuilder({{.ID}})" class="text-blue-600 hover:text-blue-900 cursor-pointer">
+            Edit Layout
+          </button>
+        </td>
+      </tr>
+
+      <tr class="even:bg-gray-200">
+        <td class="px-6 pb-4"></td> <!-- EMPTY: This aligns the next cell right under "Tags" -->
+
+        <td class="px-6 pb-4">
+          <div class="text-base font-semibold text-background/80 max-w-125 break-all">
+            Tech Stack:
+          </div>
+        </td>
+        <td colspan="4" class="px-6 pb-4 pt-1">
+
+          {{with $techStack := index $.TechStacks .RowID}}
+          <!-- Container for the 1D Array -->
+          <div class="flex flex-col items-start gap-2 mt-1">
+
+            <!-- Loop through the flattened array (e.g., "Go", "HTML, TailwindCSS, PreactJS") -->
+            {{range $groupString := $techStack}}
+
+            <div>
+              <!-- Split the string by comma and loop through the resulting skills -->
+              {{range $skill := split $groupString ","}}
+              <span class="inline-block bg-hover text-white px-2 py-1 text-xs font-bold">
+                {{$skill}}
+              </span>
+              {{end}}
+            </div>
+
+            {{end}}
+
+          </div>
+          {{else}}
+          <div class="mt-1 text-xs text-gray-400 italic">No layout configured.</div>
+          {{end}}
+        </td>
+      </tr>
+
+      <!-- Expandable Visual Builder Row for this specific Work -->
+      <tr id="builder-row-{{.ID}}" class="hidden bg-gray-50/50 border-y-2 border-gray-200">
+        <td colspan="5" class="px-6 py-6">
+          <div class="max-w-4xl mx-auto bg-white border border-gray-200 p-6 rounded-lg shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-lg font-medium text-gray-900">Visual Skills Builder
+                <span class="text-gray-400 font-normal text-sm ml-2">ID: {{.ID}}</span>
+                <span class="text-gray-500 font-normal text-sm ml-2">Type: {{.Type}}</span>
+              </h4>
+              <button onclick="toggleBuilder({{.ID}})"
+                class="text-gray-400 hover:text-gray-700 font-medium text-sm">Close &times;</button>
+            </div>
+
+            <!-- Builder Container -->
+            <div id="layout-builder-{{.ID}}"
+              class="divide-y divide-gray-200 border border-gray-200 rounded-lg bg-gray-50 mb-6">
+              <!-- Rows injected here by JS -->
+            </div>
+
+            <div class="flex gap-4 items-center">
+              <button onclick="addNewRow({{.ID}})"
+                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-800 bg-white hover:bg-gray-50 cursor-pointer">
+                + Add New Row
+              </button>
+              <button onclick="saveLayout({{.ID}}, '{{.Type}}', {{.RowID}})"
+                class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer ml-auto">
+                Save Layout to Database
+              </button>
+            </div>
+            <p id="status-msg-{{.ID}}" class="mt-3 text-sm font-medium hidden"></p>
+          </div>
+        </td>
+      </tr>
+      {{end}}
+    </tbody>
+
+  </table>
+  {{else}}
+  <div class="p-6 text-sm text-gray-500 text-center">No works found.</div>
+  {{end}}
+</div>
+
+<script>
+  // --- Visual Skills Builder Logic ---
+
+  // Track layouts by their specific Work ID
+  const workLayouts = {};
+
+  // Initialize an empty layout for a work item if it doesn't exist yet
+  function initWork(id) {
+    if (!workLayouts[id]) {
+      workLayouts[id] = [[]]; // Start with one empty row
+    }
+  }
+
+  // Toggle the accordion row visibility
+  function toggleBuilder(id) {
+    const row = document.getElementById(`builder-row-${id}`);
+    if (row.classList.contains('hidden')) {
+      row.classList.remove('hidden');
+      initWork(id);
+      renderBuilder(id);
+    } else {
+      row.classList.add('hidden');
+    }
+  }
+
+  function renderBuilder(id) {
+    const container = document.getElementById(`layout-builder-${id}`);
+    container.innerHTML = '';
+
+    const data = workLayouts[id];
+
+    if (data.length === 0) {
+      container.innerHTML = `
+            <div class="p-8 text-center bg-white rounded-lg">
+                <p class="text-sm text-gray-500">No rows exist. Add a new row below.</p>
+            </div>`;
+      return;
+    }
+
+    data.forEach((row, rowIndex) => {
+      const rowDiv = document.createElement('div');
+      rowDiv.className = "p-5 bg-white";
+
+      rowDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm font-medium text-gray-500 uppercase tracking-wider">Row ${rowIndex + 1}</span>
+                    ${data.length > 1 ? `<button onclick="deleteRow(${id}, ${rowIndex})" class="text-xs font-medium text-red-600 hover:text-red-800 cursor-pointer">Remove Row</button>` : ''}
+                </div>
+            `;
+
+      const tagsContainer = document.createElement('div');
+      tagsContainer.className = "mb-3 flex flex-wrap";
+
+      if (row.length === 0) {
+        tagsContainer.innerHTML = `<span class="text-sm text-gray-400 italic">No tech stack added yet</span>`;
+      } else {
+        row.forEach((skill, skillIndex) => {
+          const tag = document.createElement('span');
+          tag.className = "inline-flex items-center bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded text-sm mr-2 mb-2";
+          tag.innerHTML = `
+                        ${skill}
+                        <button onclick="removeSkill(${id}, ${rowIndex}, ${skillIndex})" class="ml-2 text-blue-400 hover:text-blue-700 focus:outline-none">&times;</button>
+                    `;
+          tagsContainer.appendChild(tag);
+        });
+      }
+
+      // Input field supporting the Enter key
+      const inputGroup = document.createElement('div');
+      inputGroup.className = "flex items-center gap-3 mt-2";
+      inputGroup.innerHTML = `
+                <input type="text" id="input-${id}-${rowIndex}"
+                       placeholder="Type a skill (e.g. Go, SQLite)"
+                       class="px-3 py-1.5 border border-gray-300 rounded-md text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-64 text-gray-900"
+                       onkeydown="if(event.key === 'Enter') { event.preventDefault(); addSkill(${id}, ${rowIndex}); }">
+                <button onclick="addSkill(${id}, ${rowIndex})" class="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-sm font-medium rounded-md text-gray-700 bg-gray-100 hover:bg-gray-200 cursor-pointer">
+                    Add
+                </button>
+            `;
+
+      rowDiv.appendChild(tagsContainer);
+      rowDiv.appendChild(inputGroup);
+      container.appendChild(rowDiv);
+    });
+  }
+
+  function addNewRow(id) {
+    workLayouts[id].push([]);
+    renderBuilder(id);
+  }
+
+  function deleteRow(id, rowIndex) {
+    workLayouts[id].splice(rowIndex, 1);
+    renderBuilder(id);
+  }
+
+  function addSkill(id, rowIndex) {
+    const input = document.getElementById(`input-${id}-${rowIndex}`);
+    const skillName = input.value.trim();
+    if (skillName) {
+      workLayouts[id][rowIndex].push(skillName);
+      renderBuilder(id);
+      // Refocus for rapid data entry
+      document.getElementById(`input-${id}-${rowIndex}`)?.focus();
+    }
+  }
+
+  function removeSkill(id, rowIndex, skillIndex) {
+    workLayouts[id][rowIndex].splice(skillIndex, 1);
+    renderBuilder(id);
+  }
+
+  async function saveLayout(id, type, rowid) {
+    const statusMsg = document.getElementById(`status-msg-${id}`);
+    statusMsg.classList.add('hidden');
+    statusMsg.className = "mt-3 text-sm font-medium"; // reset classes
+
+    try {
+      const response = await fetch('/nimda/selected-works/tech-stack', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          work_id: rowid,
+          type,
+          skills_layout: workLayouts[id]
+        })
+      });
+
+      if (response.ok) {
+        statusMsg.textContent = "Layout saved successfully!";
+        statusMsg.classList.add('text-green-600');
+        statusMsg.classList.remove('hidden');
+        setTimeout(() => {
+          statusMsg.classList.add('hidden');
+          location.reload();
+        }, 3000);
+      } else {
+        statusMsg.textContent = "Failed to save layout.";
+        statusMsg.classList.add('text-red-600');
+        statusMsg.classList.remove('hidden');
+      }
+    } catch (error) {
+      console.error("Error saving:", error);
+      statusMsg.textContent = "Network error. Please try again.";
+      statusMsg.classList.add('text-red-600');
+      statusMsg.classList.remove('hidden');
+    }
+  }
+</script>
+{{end}}

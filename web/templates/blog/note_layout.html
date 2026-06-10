@@ -1,0 +1,134 @@
+{{define "note_layout"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>{{.Title}} - Note | EdwardJPT</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EdwardJPT's blog post">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="icon" href="/static/images/logo.webp">
+  <link rel="stylesheet" type="text/css" href="/static/css/output.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="renderMathInElement(document.body, {
+            delimiters: [
+                {left: '$$', right: '$$', display: true},
+                {left: '$', right: '$', display: false}
+            ]
+        });">
+        </script>
+  <style>
+    .prose blockquote p:first-child {
+      font-weight: bold;
+    }
+
+    .katex {
+      color: #f8fafc;
+      font-size: 1.1em;
+    }
+
+    .custom-html-box {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: white !important;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+
+<body class="bg-background text-white antialiased">
+  <nav id="navbar"
+    class="fixed top-0 left-0 z-10 flex h-24 w-full max-w-screen items-center justify-center bg-lighter_background font-sans text-white md:relative">
+    <div class="flex h-full w-7xl flex-row items-center justify-evenly md:justify-between">
+      <a href="/blog" class="ml-0 flex flex-row items-center md:ml-6 lg:ml-24">
+        <img src="/static/images/logo-for-page.png" alt="logo picture" width="30" height="37.5"
+          class="h-10 w-6 sm:h-14 sm:w-8" />
+        <h2
+          class="ml-3 flex w-fit justify-center border-b border-b-white pb-4 text-xl font-light tracking-title sm:text-2xl md:ml-6">
+          EdwardJPT's blog
+        </h2>
+      </a>
+
+      <div id="nav_links_controller" onclick="show_links()" class="cursor-pointer md:hidden">
+        <div class="mt-1 h-1 w-7 bg-white"></div>
+        <div class="mt-1 h-1 w-7 bg-white"></div>
+        <div class="mt-1 h-1 w-7 bg-white"></div>
+      </div>
+
+      <div id="nav_links"
+        class="fixed top-24 hidden w-screen flex-col justify-between  md:relative md:top-0 md:flex md:w-fit md:flex-row lg:mr-12">
+        <a href="/"
+          class="mx-0 flex min-w-28 items-center justify-center bg-lighter_background px-5 py-3 text-xl hover:bg-hover md:mx-3">
+          Home
+        </a>
+        <a href="/blog"
+          class="mx-0 flex min-w-28 items-center justify-center bg-lighter_background px-5 py-3 text-xl hover:bg-hover md:mx-3">
+          Blog
+        </a>
+        <a href="/projects"
+          class="mx-0 flex min-w-28 items-center justify-center bg-lighter_background px-5 py-3 text-xl hover:bg-hover md:mx-3">
+          Projects
+        </a>
+        <a href="/about"
+          class="mx-0 flex min-w-28 items-center justify-center bg-lighter_background px-5 py-3 text-xl hover:bg-hover md:mx-3">
+          About
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-4xl mx-auto pt-30 md:py-16 px-6 shadow-sm min-h-screen">
+    <header class="font-sans mb-10 border-b pb-8">
+      <h1 class="text-4xl font-semibold tracking-tight text-white mb-2">
+        {{.Title}}
+      </h1>
+    </header>
+
+    <section class="prose prose-lg prose-zinc prose-invert max-w-none text-white/80 font-semibold mb-5">
+      {{formatDate .PublishedAt}}
+    </section>
+
+    <section class="prose prose-lg prose-zinc prose-invert max-w-none font-semibold">
+      {{.Content}}
+    </section>
+
+    {{if .Tags}}
+    <section class="prose prose-lg prose-zinc prose-invert max-w-none font-semibold mt-10 flex flex-row gap-2.5">
+      <a href="/tags" class="no-underline font-bold text-white/75">
+        Tags:
+      </a>
+      {{ range split .Tags "," }}
+      <a href="/tag/{{ . }}"
+        class="text-base hover:px-1 py-1 bg-white/10 border border-white/5 w-fit text-slate-100 hover:bg-background relative z-20 shrink-0 font-semibold">
+        {{ . }}
+      </a>
+      {{end}}
+    </section>
+    {{end}}
+  </main>
+
+  <section class="min-w-full bg-background">
+    {{template "footer" .}}
+  </section>
+</body>
+
+<script>
+  // controller to show the nav links in small screen
+  const navLinks = document.getElementById("nav_links");
+  const navLinksController = document.getElementById("nav_links_controller");
+  const show_links = () => {
+    let display = navLinks.style.display;
+    if (display == "" || display == "none") {
+      navLinks.style.display = "flex";
+    } else {
+      navLinks.style.display = "none";
+    }
+  }
+</script>
+
+</html>
+{{end}}

@@ -1,0 +1,145 @@
+{{define "layout"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <title>EdwardJPT page</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EdwardJPT's website page">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="icon" href="/static/images/logo.webp">
+  <link rel="stylesheet" type="text/css" href="/static/css/output.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div class="flex min-h-screen w-screen flex-col items-center bg-background font-sans">
+
+    <!-- Logout Button (Top Right) - Increased to text-base -->
+    <div class="absolute top-6 right-6">
+      <a href="/nimda/logout"
+        class="flex items-center gap-2 px-5 py-2.5 text-base font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-md">
+        <!-- Logout Icon -->
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+        Logout
+      </a>
+    </div>
+
+    <div class="mt-30 mb-20 flex flex-col items-center">
+      <a href="/nimda/dashboard" class="text-4xl font-bold text-white">
+        Blog Dashboard
+      </a>
+      <p class="text-white text-lg mt-2">Contents, Stats, and Activity</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 mb-8 w-full max-w-7xl px-4">
+      <!-- Posts -->
+      <div class="bg-white rounded-lg shadow flex items-center justify-center py-4">
+        <a href="/nimda/posts" class="p-3 bg-blue-100 rounded-lg">
+          <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+        </a>
+        <div class="ml-4">
+          <p class="text-base font-medium text-gray-600">Posts</p>
+          <p class="text-3xl font-bold text-gray-900">{{.PostCount}}</p>
+          <p class="text-base text-gray-500">{{.PublishedPosts}} published</p>
+          <p class="text-base text-gray-500">{{.DraftPosts}} drafts</p>
+        </div>
+      </div>
+
+      <!-- Bookmarks -->
+      <div class="bg-white rounded-lg shadow flex items-center justify-center">
+        <a href="/nimda/bookmarks" class="p-3 bg-green-100 rounded-lg">
+          <svg class="w-7 h-7 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+        </a>
+        <div class="ml-4">
+          <p class="text-base font-medium text-gray-600">Bookmarks</p>
+          <p class="text-3xl font-bold text-gray-900">{{.BookmarkCount}}</p>
+          <p class="text-base text-gray-500">{{.PublishedBookmarks}} published</p>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="bg-white rounded-lg shadow flex items-center justify-center">
+        <a href="/nimda/notes" class="p-3 bg-yellow-100 rounded-lg">
+          <svg class="w-7 h-7 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+        </a>
+        <div class="ml-4">
+          <p class="text-base font-medium text-gray-600">Notes</p>
+          <p class="text-3xl font-bold text-gray-900">{{.NoteCount}}</p>
+          <p class="text-base text-gray-500">{{.PublishedNotes}} published</p>
+        </div>
+      </div>
+
+      <!-- Projects -->
+      <div class="bg-white rounded-lg shadow flex items-center justify-center">
+        <a href="/nimda/projects" class="p-3 bg-purple-100 rounded-lg">
+          <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+          </svg>
+        </a>
+        <div class="ml-4">
+          <p class="text-base font-medium text-gray-600">Projects</p>
+          <p class="text-3xl font-bold text-gray-900">{{.ProjectCount}}</p>
+          <p class="text-base text-gray-500">{{.PublishedProjects}} published</p>
+        </div>
+      </div>
+
+      <!-- Open Source Contributions -->
+      <div class="bg-white rounded-lg shadow flex items-center justify-center">
+        <a href="/nimda/os-contributions" class="p-3 bg-purple-100 rounded-lg">
+          <svg class="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </a>
+        <div class="ml-4">
+          <p class="text-base font-medium text-gray-600">Open Source</p>
+          <p class="text-3xl font-bold text-gray-900">{{.ProjectCount}}</p>
+          <p class="text-base text-gray-500">{{.PublishedProjects}} published</p>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="w-7xl my-5 bg-white h-px"></div>
+
+    <!-- The Features -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-8 min-w-4xl">
+        {{block "admin-content" .}}
+        {{if eq .SectionType "posts-list"}}
+          {{template "posts-list" .}}
+        {{else if eq .SectionType "posts-form"}}
+          {{template "posts-form" .}}
+        {{end}}
+        {{end}}
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-background">
+    {{template "footer" .}}
+  </footer>
+</body>
+
+<script></script>
+
+</html>
+{{end}}

@@ -1,0 +1,27 @@
+{{define "footer"}}
+<div
+  class="relative z-0 flex h-48 flex-col-reverse items-center justify-around bg-inherit py-8 text-base text-white md:flex-row md:justify-evenly md:text-xl">
+  <p>
+    © <span id="year"></span> <span class="tracking-widest">EdwardJPT</span>
+  </p>
+  <div class="flex min-w-32 flex-row items-center justify-between">
+    <a href="mailto:email@edward.wtf">
+      <img src="/static/images/email.svg" alt="Email me" width="27.5" height="27.5">
+    </a>
+    <a href="https://github.com/edwardjpt" target="_blank">
+      <img src="/static/images/github-mark-white.svg" alt="My github link" width="25" height="25">
+    </a>
+    <a href="https://x.com/edwardjpt" target="_blank">
+      <img src="/static/images/x.svg" alt="My x link" width="17.5" height="17.5">
+    </a>
+  </div>
+
+  <script>
+    (function () {
+      // Priority toggle functionality
+      const yearHTML = document.getElementById("year");
+      yearHTML.innerText = `${new Date().getFullYear()}`;
+    })();
+  </script>
+</div>
+{{end}}
