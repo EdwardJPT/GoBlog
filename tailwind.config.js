@@ -1,12 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: [
-        "./web/templates/*.html",
-        "./web/templates/blog/*.html",
-        "./web/templates/projects/*.html",
-        "./web/templates/tags/*.html",
-        "./web/templates/components/*.html",
-        "./internal/admin/templates/*.html",
+        "./web/templates/**/*.html",
+        "./internal/admin/templates/**/*.html",
     ], // This is where your HTML templates
     theme: {
         extend: {

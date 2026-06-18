@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "watch": "npx @tailwindcss/cli -i ./web/assets/css/input.css -o ./web/assets/css/output.css --watch"
+    "watch": "npx @tailwindcss/cli -i ./web/assets/css/input.css -o ./web/assets/css/output.css --watch",
+    "build": "npx @tailwindcss/cli -i ./web/assets/css/input.css -o ./web/assets/css/output.css --minify",
+    "watch-deno": "deno run -A npm:@tailwindcss/cli -i ./web/assets/css/input.css -o ./web/assets/css/output.css --watch"
   },
   "keywords": [],
   "author": "",
