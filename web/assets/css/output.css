@@ -281,6 +281,9 @@
   .pointer-events-none {
     pointer-events: none;
   }
+  .invisible {
+    visibility: hidden;
+  }
   .sr-only {
     position: absolute;
     width: 1px;
@@ -2932,6 +2935,11 @@
   .sm\:mt-16 {
     @media (width >= 40rem) {
       margin-top: calc(var(--spacing) * 16);
+    }
+  }
+  .sm\:flex {
+    @media (width >= 40rem) {
+      display: flex;
     }
   }
   .sm\:h-10 {

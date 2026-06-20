@@ -9,14 +9,15 @@
     align-items: center !important;
     justify-content: center !important;
     background-color: #100340 !important;
-    z-index: 2 !important;
+    z-index: 50 !important;
 }
 
 .fixedButton {
     padding: 10px 0px !important;
     margin: 0 !important;
     font-size: 20px;
-    border: 0px solid !important;
+    border-color: transparent !important;
+    /* Better for smooth animations */
     width: 250px !important;
     display: flex !important;
     align-items: center !important;

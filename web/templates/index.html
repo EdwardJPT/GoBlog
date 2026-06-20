@@ -1068,7 +1068,7 @@
             {{if eq $index 4}}
             <button
               onclick="document.getElementById('end-articles').scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });"
-              class="snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-full">
+              class="hidden sm:flex snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-full">
               <svg class="w-6 h-6 text-indigo-300 group-hover:text-white group-hover:translate-x-1 transition-all"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7">
@@ -1081,7 +1081,7 @@
 
             <button
               onclick="document.getElementById('start-articles').scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });"
-              class="snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-full">
+              class="hidden sm:flex snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-full">
               <svg class="w-6 h-6 text-indigo-300 group-hover:text-white group-hover:-translate-x-1 transition-all"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7">
@@ -1128,7 +1128,7 @@
     </div>
 
     <main id="bio"
-      class="flex min-h-screen max-w-4xl flex-col justify-center bg-inherit p-6 mb-12.5 text-white z-10 sm:px-8 lg:items-center lg:px-16 lg:pt-20">
+      class="flex min-h-screen max-w-4xl flex-col justify-center bg-inherit p-6 mb-17.5 text-white z-10 sm:px-8 lg:items-center lg:px-16 lg:pt-20">
       <div class="flex w-full flex-col justify-between lg:flex-row">
         <div class="md:-mt-10 mb-6 flex flex-col gap-y-3 sm:gap-y-5 items-start lg:mb-0 lg:w-7/12">
           <p class="text-lg tracking-widest">
@@ -1201,7 +1201,9 @@
         </div>
       </div>
 
-      <div class="relative flex flex-row justify-center text-center text-base sm:mt-16 sm:text-lg" id="links">
+      <div id="nav-sentinel" class="sm:mt-16"></div>
+
+      <div class="relative flex flex-row justify-center text-center text-base sm:text-lg" id="links">
         <a href="/about"
           class="navLink mx-2 my-3 flex w-20 items-center justify-center border border-white px-3 py-4 select-none hover:bg-hover hover:font-bold sm:w-36">
           About
@@ -1522,28 +1524,43 @@
     // window.onbeforeunload = () => window.scrollTo(0, 0);
 
     // For the effect to the buttons when the page is scrolled down
-    const handleScroll = () => {
-      const position = window.pageYOffset;
-      if (position >= linksY) {
-        links.classList.add("fixedLinks");
-        navLinks[0].classList.add("fixedButton");
-        navLinks[1].classList.add("fixedButton");
-        navLinks[2].classList.add("fixedButton");
-      }
-      else {
-        links.classList.remove("fixedLinks");
-        navLinks[0].classList.remove("fixedButton");
-        navLinks[1].classList.remove("fixedButton");
-        navLinks[2].classList.remove("fixedButton");
-      }
-    }
-
-    // add the event listener to all the links for the feature above
-    window.addEventListener("scroll", handleScroll, {passive: true});
-    // look up the position of the links button
     const links = document.getElementById("links");
-    linksY = links.getBoundingClientRect().top;
     const navLinks = document.querySelectorAll(".navLink");
+    const sentinel = document.getElementById("nav-sentinel");
+
+    // Create an invisible placeholder to prevent the page from jumping upward
+    const placeholder = document.createElement("div");
+    placeholder.style.display = "none";
+    links.parentNode.insertBefore(placeholder, links);
+
+    // Set up the Intersection Observer
+    const observer = new IntersectionObserver((entries) => {
+      const entry = entries[0];
+
+      // If the sentinel scrolls out of view at the top of the screen
+      if (!entry.isIntersecting && entry.boundingClientRect.top <= 0) {
+
+        // Lock the placeholder to the exact current height of your links
+        placeholder.style.height = `${links.offsetHeight}px`;
+        placeholder.style.display = "block";
+
+        // Apply your fixed styling classes
+        links.classList.add("fixedLinks");
+        navLinks.forEach(link => link.classList.add("fixedButton"));
+      } else {
+        // Hide the placeholder space
+        placeholder.style.display = "none";
+
+        // Remove your fixed styling classes
+        links.classList.remove("fixedLinks");
+        navLinks.forEach(link => link.classList.remove("fixedButton"));
+      }
+    },
+      {threshold: 0, rootMargin: "0px"} // Triggers exactly when the sentinel crosses the top pixel
+    );
+
+    // Start watching the sentinel
+    observer.observe(sentinel);
 
     /*
     // For the timeline feature
