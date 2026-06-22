@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"os"
 
-	admin_handler "blog/internal/admin/handlers"
-	admin_middlewares "blog/internal/admin/middlewares"
 	"blog/internal/database"
-	"blog/internal/handlers"
+	admin_handlers "blog/internal/handlers/admin"
+	handlers "blog/internal/handlers/public"
+	admin_middlewares "blog/internal/middlewares/admin"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -29,7 +29,7 @@ func main() {
 		log.Fatalf("Failed to connect to database: %v\n", err)
 	}
 	defer db.Close()
-	log.Printf("Success connecting to the database.\n")
+	log.Printf("Success connecting to the database\n")
 	log.Printf("Foreign Keys %d\n", database.CheckFK(db))
 	log.Printf("Journal Mode %s\n", database.CheckJournalMode(db))
 	log.Printf("  Cache Size %d\n", database.CheckCacheSize(db))
@@ -50,25 +50,28 @@ func main() {
 
 	// Set up the jwt for auth
 	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is not set")
+	}
 	jwt := jwtauth.New("HS256", []byte(jwtSecret), nil)
 
 	// Init handlers by passing the db and jwt
 
-	// ADMIN HANDLER
-	adminHandler := admin_handler.NewAdminHandler(db, jwt)
-	postsHandler := admin_handler.NewPostHandler(db)
-	notesHandler := admin_handler.NewNoteHandler(db)
-	bookmarksHandler := admin_handler.NewBookmarkHandler(db)
-	projectsHandler := admin_handler.NewProjectHandler(db)
-	contributionsHandler := admin_handler.NewContributionsHandler(db)
-	selectedHandler := admin_handler.NewSelectedHandler(db)
-	// VISITOR HANDLERS
+	// PUBLIC HANDLERS
 	homeHandler := handlers.NewHomeHandler(db)
 	aboutHandler := handlers.NewAboutHandler()
 	writingsHandler := handlers.NewWritingsHandler(db)
 	worksHandler := handlers.NewWorksHandler(db)
 	notFoundHandler := handlers.NewNotFoundHandler()
 	tagsHandler := handlers.NewTagsHandler(db)
+	// ADMIN HANDLERS
+	adminHandler := admin_handlers.NewAdminHandler(db, jwt)
+	postsHandler := admin_handlers.NewPostHandler(db)
+	notesHandler := admin_handlers.NewNoteHandler(db)
+	bookmarksHandler := admin_handlers.NewBookmarkHandler(db)
+	projectsHandler := admin_handlers.NewProjectHandler(db)
+	contributionsHandler := admin_handlers.NewContributionsHandler(db)
+	selectedHandler := admin_handlers.NewSelectedHandler(db)
 
 	// Init the chi router
 	r := chi.NewRouter()
@@ -81,7 +84,7 @@ func main() {
 
 	// Routers
 
-	// VISITOR ROUTERS
+	// PUBLIC ROUTERS
 	r.Get("/", homeHandler.HomePage)
 	r.Get("/about", aboutHandler.AboutPage)
 	// Blog router
@@ -123,123 +126,112 @@ func main() {
 
 	// ADMIN ROUTERS
 
-	// Login and Dashboard router
 	r.Route("/nimda", func(r chi.Router) {
+		// Global admin middleware
 		r.Use(admin_middlewares.IdMiddleware)
+
+		// Auth router
 		r.Group(func(r chi.Router) {
-			// Middleware that would redirect authenticated users to /nimda/dashboard
+			// Redirects already authenticated users away from the login page
 			r.Use(admin_middlewares.AuthenticatedRedirector(jwt))
 			r.Get("/", adminHandler.AdminPage)
 		})
 		r.Post("/", adminHandler.SignIn)
 		r.Get("/logout", adminHandler.SignOut)
-		// Protected routes
+
+		// Protected admin router
 		r.Group(func(r chi.Router) {
 			r.Use(admin_middlewares.Auth(jwt))
+
+			// Dashboard
 			r.Get("/dashboard", adminHandler.DashboardPage)
-		})
-	})
 
-	// Content Management router
-	r.Route("/nimda/posts", func(r chi.Router) {
-		r.Use(admin_middlewares.IdMiddleware)
-		r.Use(admin_middlewares.Auth(jwt))
-		r.Get("/", postsHandler.PostsList)
-		r.Get("/components", postsHandler.PostsListComponent)
-		r.Get("/new", postsHandler.PostsForm)
-		r.Post("/", postsHandler.PostsCreate)
-		r.Get("/{id}/edit", postsHandler.PostsEdit)
-		r.Post("/{id}", postsHandler.PostsUpdate)
-		r.Post("/{id}/delete", postsHandler.PostsDelete)
-	})
-	r.Route("/nimda/bookmarks", func(r chi.Router) {
-		r.Use(admin_middlewares.IdMiddleware)
-		r.Use(admin_middlewares.Auth(jwt))
-		r.Get("/", bookmarksHandler.BookmarksList)
-		r.Get("/new", bookmarksHandler.BookmarksForm)
-		r.Post("/", bookmarksHandler.BookmarksCreate)
-		r.Get("/{id}/edit", bookmarksHandler.BookmarksEdit)
-		r.Post("/{id}", bookmarksHandler.BookmarksUpdate)
-		r.Post("/{id}/delete", bookmarksHandler.BookmarksDelete)
-	})
-	r.Route("/nimda/notes", func(r chi.Router) {
-		r.Use(admin_middlewares.IdMiddleware)
-		r.Use(admin_middlewares.Auth(jwt))
-		r.Get("/", notesHandler.NotesList)
-		r.Get("/components", notesHandler.NotesListComponent)
-		r.Get("/new", notesHandler.NotesForm)
-		r.Post("/", notesHandler.NotesCreate)
-		r.Get("/{id}/edit", notesHandler.NotesEdit)
-		r.Post("/{id}", notesHandler.NotesUpdate)
-		r.Post("/{id}/delete", notesHandler.NotesDelete)
-	})
-	r.Route("/nimda/projects", func(r chi.Router) {
-		r.Use(admin_middlewares.IdMiddleware)
-		r.Use(admin_middlewares.Auth(jwt))
-		r.Get("/", projectsHandler.ProjectsList)
-		r.Get("/components", projectsHandler.ProjectsListComponent)
-		r.Get("/new", projectsHandler.ProjectsForm)
-		r.Post("/", projectsHandler.ProjectsCreate)
-		r.Get("/{id}/edit", projectsHandler.ProjectsEdit)
-		r.Post("/{id}", projectsHandler.ProjectsUpdate)
-		r.Post("/{id}/delete", projectsHandler.ProjectsDelete)
-	})
-	r.Route("/nimda/os-contributions", func(r chi.Router) {
-		r.Use(admin_middlewares.IdMiddleware)
-		r.Use(admin_middlewares.Auth(jwt))
-		r.Get("/", contributionsHandler.ContributionsList)
-		r.Get("/components", contributionsHandler.ContributionsListComponent)
-		r.Get("/new", contributionsHandler.ContributionsForm)
-		r.Post("/", contributionsHandler.ContributionsCreate)
-		r.Get("/{id}/edit", contributionsHandler.ContributionsEdit)
-		r.Post("/{id}", contributionsHandler.ContributionsUpdate)
-		r.Post("/{id}/delete", contributionsHandler.ContributionsDelete)
-	})
-
-	// Content management about what shown in the home page and tags router
-	r.Route("/nimda/selected-works", func(r chi.Router) {
-		r.Use(admin_middlewares.IdMiddleware)
-		r.Use(admin_middlewares.Auth(jwt))
-		r.Get("/", selectedHandler.WorksList)
-		r.Get("/{id}/{type}", selectedHandler.AddWorks)
-		r.Post("/tech-stack", selectedHandler.UpsertTechStack)
-	})
-	r.Route("/nimda/selected-writings", func(r chi.Router) {
-		r.Use(admin_middlewares.IdMiddleware)
-		r.Use(admin_middlewares.Auth(jwt))
-		r.Get("/", selectedHandler.WritingsList)
-		r.Get("/{id}/{type}", selectedHandler.AddWritings)
-	})
-	// TODO:
-	// Postponed /nimda/selected-experiences because I think it's better to
-	// hard code it now
-	r.Route("/nimda/experiences", func(r chi.Router) {
-		r.Use(admin_middlewares.IdMiddleware)
-		r.Use(admin_middlewares.Auth(jwt))
-		r.Get("/", adminHandler.DashboardPage)
-	})
-	r.Route("/nimda/tags", func(r chi.Router) {
-		r.Use(admin_middlewares.IdMiddleware)
-		r.Use(admin_middlewares.Auth(jwt))
-		r.Get("/", adminHandler.DashboardPage)
-		r.Get("/new", adminHandler.DashboardPage)
-		r.Post("/", adminHandler.DashboardPage)
-		r.Get("/{id}/edit", adminHandler.DashboardPage)
-		r.Post("/{id}", adminHandler.DashboardPage)
-		r.Post("/{id}/delete", adminHandler.DashboardPage)
-		/*
-			TODO:
-			r.Route("/nimda/tags", func(r chi.Router) {
-			»   r.Use(admin_middlewares.IdMiddleware)
-			»   r.Use(admin_middlewares.Auth(jwt))
-			»   r.Get("/", adminHandler.TagsList)
-			»   r.Get("/{tag}", adminHandler.TagsShow)
-			»   r.Get("/{tag}/edit", adminHandler.TagsEditForm)
-			»   r.Post("/{tag}/edit", adminHandler.TagsUpdate)
-			»   r.Post("/{tag}/delete", adminHandler.TagsDelete)
-			»   r.Get("/{tag}/{table}", adminHandler.TagsShowByTable)
+			// Content Management
+			r.Route("/posts", func(r chi.Router) {
+				r.Get("/", postsHandler.PostsList)
+				r.Get("/components", postsHandler.PostsListComponent)
+				r.Get("/new", postsHandler.PostsForm)
+				r.Post("/", postsHandler.PostsCreate)
+				r.Get("/{id}/edit", postsHandler.PostsEdit)
+				r.Post("/{id}", postsHandler.PostsUpdate)
+				r.Post("/{id}/delete", postsHandler.PostsDelete)
 			})
-		*/
+
+			r.Route("/bookmarks", func(r chi.Router) {
+				r.Get("/", bookmarksHandler.BookmarksList)
+				r.Get("/new", bookmarksHandler.BookmarksForm)
+				r.Post("/", bookmarksHandler.BookmarksCreate)
+				r.Get("/{id}/edit", bookmarksHandler.BookmarksEdit)
+				r.Post("/{id}", bookmarksHandler.BookmarksUpdate)
+				r.Post("/{id}/delete", bookmarksHandler.BookmarksDelete)
+			})
+
+			r.Route("/notes", func(r chi.Router) {
+				r.Get("/", notesHandler.NotesList)
+				r.Get("/components", notesHandler.NotesListComponent)
+				r.Get("/new", notesHandler.NotesForm)
+				r.Post("/", notesHandler.NotesCreate)
+				r.Get("/{id}/edit", notesHandler.NotesEdit)
+				r.Post("/{id}", notesHandler.NotesUpdate)
+				r.Post("/{id}/delete", notesHandler.NotesDelete)
+			})
+
+			r.Route("/projects", func(r chi.Router) {
+				r.Get("/", projectsHandler.ProjectsList)
+				r.Get("/components", projectsHandler.ProjectsListComponent)
+				r.Get("/new", projectsHandler.ProjectsForm)
+				r.Post("/", projectsHandler.ProjectsCreate)
+				r.Get("/{id}/edit", projectsHandler.ProjectsEdit)
+				r.Post("/{id}", projectsHandler.ProjectsUpdate)
+				r.Post("/{id}/delete", projectsHandler.ProjectsDelete)
+			})
+
+			r.Route("/os-contributions", func(r chi.Router) {
+				r.Get("/", contributionsHandler.ContributionsList)
+				r.Get("/components", contributionsHandler.ContributionsListComponent)
+				r.Get("/new", contributionsHandler.ContributionsForm)
+				r.Post("/", contributionsHandler.ContributionsCreate)
+				r.Get("/{id}/edit", contributionsHandler.ContributionsEdit)
+				r.Post("/{id}", contributionsHandler.ContributionsUpdate)
+				r.Post("/{id}/delete", contributionsHandler.ContributionsDelete)
+			})
+
+			// Selected Works & Writings
+			r.Route("/selected-works", func(r chi.Router) {
+				r.Get("/", selectedHandler.WorksList)
+				r.Get("/{id}/{type}", selectedHandler.AddWorks)
+				r.Post("/tech-stack", selectedHandler.UpsertTechStack)
+			})
+
+			r.Route("/selected-writings", func(r chi.Router) {
+				r.Get("/", selectedHandler.WritingsList)
+				r.Get("/{id}/{type}", selectedHandler.AddWritings)
+			})
+
+			// TODO: Postponed /nimda/selected-experiences (hardcoded for now)
+			r.Route("/experiences", func(r chi.Router) {
+				r.Get("/", adminHandler.DashboardPage)
+			})
+
+			// Tags
+			r.Route("/tags", func(r chi.Router) {
+				r.Get("/", adminHandler.DashboardPage)
+				r.Get("/new", adminHandler.DashboardPage)
+				r.Post("/", adminHandler.DashboardPage)
+				r.Get("/{id}/edit", adminHandler.DashboardPage)
+				r.Post("/{id}", adminHandler.DashboardPage)
+				r.Post("/{id}/delete", adminHandler.DashboardPage)
+				/*
+				   TODO:
+				   r.Get("/", adminHandler.TagsList)
+				   r.Get("/{tag}", adminHandler.TagsShow)
+				   r.Get("/{tag}/edit", adminHandler.TagsEditForm)
+				   r.Post("/{tag}/edit", adminHandler.TagsUpdate)
+				   r.Post("/{tag}/delete", adminHandler.TagsDelete)
+				   r.Get("/{tag}/{table}", adminHandler.TagsShowByTable)
+				*/
+			})
+		})
 	})
 
 	// 404

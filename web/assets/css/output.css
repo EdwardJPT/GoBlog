@@ -112,7 +112,6 @@
     --font-weight-bold: 700;
     --font-weight-extrabold: 800;
     --tracking-tight: -0.025em;
-    --tracking-normal: 0em;
     --tracking-wider: 0.05em;
     --tracking-widest: 0.1em;
     --leading-tight: 1.25;
@@ -1107,9 +1106,6 @@
   .mb-10 {
     margin-bottom: calc(var(--spacing) * 10);
   }
-  .mb-12\.5 {
-    margin-bottom: calc(var(--spacing) * 12.5);
-  }
   .mb-17\.5 {
     margin-bottom: calc(var(--spacing) * 17.5);
   }
@@ -1971,9 +1967,6 @@
   .text-center {
     text-align: center;
   }
-  .text-justify {
-    text-align: justify;
-  }
   .text-left {
     text-align: left;
   }
@@ -2066,10 +2059,6 @@
   .font-semibold {
     --tw-font-weight: var(--font-weight-semibold);
     font-weight: var(--font-weight-semibold);
-  }
-  .tracking-normal {
-    --tw-tracking: var(--tracking-normal);
-    letter-spacing: var(--tracking-normal);
   }
   .tracking-tight {
     --tw-tracking: var(--tracking-tight);
@@ -3101,6 +3090,12 @@
       line-height: var(--leading-relaxed);
     }
   }
+  .sm\:tracking-widest {
+    @media (width >= 40rem) {
+      --tw-tracking: var(--tracking-widest);
+      letter-spacing: var(--tracking-widest);
+    }
+  }
   .md\:relative {
     @media (width >= 48rem) {
       position: relative;
@@ -3247,11 +3242,6 @@
   .md\:w-3xl {
     @media (width >= 48rem) {
       width: var(--container-3xl);
-    }
-  }
-  .md\:w-175 {
-    @media (width >= 48rem) {
-      width: calc(var(--spacing) * 175);
     }
   }
   .md\:w-\[5\%\] {
