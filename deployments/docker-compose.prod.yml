@@ -1,0 +1,10 @@
+# podman-compose.prod.yml (EC2 Production)
+services:
+  nginx:
+    image: docker.io/library/nginx:stable
+    network_mode: "host"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/prod/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro # SSL keys exist only on the server
+      - ../web/assets:/usr/share/nginx/html/static:ro
