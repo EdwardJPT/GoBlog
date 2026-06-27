@@ -9,6 +9,7 @@ import (
 	admin_handlers "blog/internal/handlers/admin"
 	handlers "blog/internal/handlers/public"
 	admin_middlewares "blog/internal/middlewares/admin"
+	"blog/internal/utils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -23,7 +24,7 @@ func main() {
 		log.Fatalf("Failed to load .env file: %v\n", err)
 	}
 
-	// Init the databse connection
+	// Init the database connection
 	db, err := database.InitSQLite()
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v\n", err)
@@ -56,7 +57,6 @@ func main() {
 	jwt := jwtauth.New("HS256", []byte(jwtSecret), nil)
 
 	// Init handlers by passing the db and jwt
-
 	// PUBLIC HANDLERS
 	homeHandler := handlers.NewHomeHandler(db)
 	aboutHandler := handlers.NewAboutHandler()
@@ -65,7 +65,12 @@ func main() {
 	notFoundHandler := handlers.NewNotFoundHandler()
 	tagsHandler := handlers.NewTagsHandler(db)
 	// ADMIN HANDLERS
-	adminHandler := admin_handlers.NewAdminHandler(db, jwt)
+	adminHandler := admin_handlers.NewAdminHandler(
+		db,
+		dbRAM,
+		jwt,
+		utils.GenerateDummyHash(),
+	)
 	postsHandler := admin_handlers.NewPostHandler(db)
 	notesHandler := admin_handlers.NewNoteHandler(db)
 	bookmarksHandler := admin_handlers.NewBookmarkHandler(db)
@@ -125,7 +130,6 @@ func main() {
 	})
 
 	// ADMIN ROUTERS
-
 	r.Route("/nimda", func(r chi.Router) {
 		// Global admin middleware
 		r.Use(admin_middlewares.IdMiddleware)

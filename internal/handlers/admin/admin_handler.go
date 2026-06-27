@@ -20,6 +20,7 @@ import (
 
 type AdminHandler struct {
 	jwt           *jwtauth.JWTAuth
+	dummyHash     []byte
 	auth          *models.AdminRepository
 	posts         *models.PostRepository
 	bookmarks     *models.BookmarkRepository
@@ -30,7 +31,12 @@ type AdminHandler struct {
 	templates     *template.Template
 }
 
-func NewAdminHandler(db *sql.DB, jwt *jwtauth.JWTAuth) *AdminHandler {
+func NewAdminHandler(
+	db *sql.DB,
+	dbRAM *sql.DB,
+	jwt *jwtauth.JWTAuth,
+	dummyHash []byte,
+) *AdminHandler {
 	tmpl := template.New("").Funcs(utils.RegisterTemplateFuncs())
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/admin_login.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/admin_dashboard_overview.html"))
@@ -38,7 +44,8 @@ func NewAdminHandler(db *sql.DB, jwt *jwtauth.JWTAuth) *AdminHandler {
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/components/*.html"))
 	return &AdminHandler{
 		jwt:           jwt,
-		auth:          models.NewAdminRepository(db),
+		dummyHash:     dummyHash,
+		auth:          models.NewAdminRepository(db, dbRAM),
 		posts:         models.NewPostRepository(db),
 		bookmarks:     models.NewBookmarkRepository(db),
 		notes:         models.NewNoteRepository(db),
@@ -57,6 +64,12 @@ func (h *AdminHandler) AdminPage(w http.ResponseWriter, r *http.Request) {
 	log.Println("IP		:", id.IP)
 	log.Println("User-Agent	:", id.UserAgent)
 
+	if h.auth.IsBlocked(id.IP) {
+		log.Println("Access Denied: IP Temporarily Locked")
+		http.Error(w, "Access Denied: IP Temporarily Locked", http.StatusTooManyRequests)
+		return
+	}
+
 	err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{Message: ""})
 	if err != nil {
 		log.Println(err.Error())
@@ -69,6 +82,12 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value(admin_middlewares.IdKey).(admin_middlewares.RequestId)
 	log.Println("IP		:", id.IP)
 	log.Println("User-Agent	:", id.UserAgent)
+
+	if h.auth.IsBlocked(id.IP) {
+		log.Println("Access Denied: IP Temporarily Locked")
+		http.Error(w, "Access Denied: IP Temporarily Locked", http.StatusTooManyRequests)
+		return
+	}
 
 	// Parse form data
 	r.ParseForm()
@@ -83,6 +102,15 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	admin, err := h.auth.GetByUsername(formData.Username)
 	if err != nil {
 		log.Println("Query admin username error:", err)
+
+		h.auth.RecordFailure(id.IP)
+
+		// Still run the bcrypt math against dummy hash so there would be no
+		// difference of delay time between invalid username and invalid password.
+		// Without it, invalid username would take 2ms, and invalid password
+		// would take 100ms
+		bcrypt.CompareHashAndPassword(h.dummyHash, []byte(formData.Password))
+
 		err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{Message: "Invalid credentials"})
 		if err != nil {
 			log.Println(err.Error())
@@ -95,6 +123,9 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	err = bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(formData.Password))
 	if err != nil {
 		log.Println("Bcrypt compare error:", err)
+
+		h.auth.RecordFailure(id.IP)
+
 		err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{Message: "Invalid credentials"})
 		if err != nil {
 			log.Println(err.Error())
@@ -102,6 +133,9 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	// On Success, clear previous failed attempts to reset their window
+	h.auth.ClearFailures(id.IP)
 
 	// Set the cookie for auth
 	expDays := 1 // the expired time of the jwt

@@ -9,11 +9,12 @@ import (
 )
 
 func InitSQLiteRAM() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", ":memory:")
+	db, err := sql.Open("sqlite3", "file::memory:?cache=shared")
 	if err != nil {
 		log.Println(err)
 		return nil, errors.New("Fail to create/open the database")
 	}
+	db.SetMaxOpenConns(1)
 
 	if err = db.Ping(); err != nil {
 		log.Println(err)
