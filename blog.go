@@ -60,8 +60,6 @@ func main() {
 
 	// Init handlers by passing the db and jwt
 	// PUBLIC HANDLERS
-	// TODO: Since both public and admin handler has the access to the database
-	// create interfaces to limit the access of public handler
 	homeHandler := handlers.NewHomeHandler(db)
 	aboutHandler := handlers.NewAboutHandler()
 	writingsHandler := handlers.NewWritingsHandler(db)
