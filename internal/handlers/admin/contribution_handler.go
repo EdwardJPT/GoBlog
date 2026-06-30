@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -52,6 +53,8 @@ func (h *ContributionsHandler) ContributionsList(w http.ResponseWriter, r *http.
 
 	contributions, err := h.contributions.GetAll(filter)
 	if err != nil {
+		log.Printf("Error fetching all contributions: %v", err)
+		log.Printf("filter: %s", filter)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -79,6 +82,8 @@ func (h *ContributionsHandler) ContributionsListComponent(w http.ResponseWriter,
 
 	contributions, err := h.contributions.GetAll(filter)
 	if err != nil {
+		log.Printf("Error fetching all contributions: %v", err)
+		log.Printf("filter: %s", filter)
 		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -127,6 +132,7 @@ func (h *ContributionsHandler) ContributionsCreate(w http.ResponseWriter, r *htt
 	}
 
 	if err := h.contributions.Create(contribution); err != nil {
+		log.Printf("Error creating contribution: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -144,6 +150,7 @@ func (h *ContributionsHandler) ContributionsEdit(w http.ResponseWriter, r *http.
 
 	contribution, err := h.contributions.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching contribution by ID: %v", err)
 		http.Error(w, "Contribution not found", http.StatusNotFound)
 		return
 	}
@@ -177,6 +184,7 @@ func (h *ContributionsHandler) ContributionsUpdate(w http.ResponseWriter, r *htt
 
 	contribution, err := h.contributions.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching contribution by ID: %v", err)
 		http.Error(w, "Contribution not found", http.StatusNotFound)
 		return
 	}
@@ -189,6 +197,7 @@ func (h *ContributionsHandler) ContributionsUpdate(w http.ResponseWriter, r *htt
 	contribution.ContributionSummary = r.FormValue("contribution_summary")
 
 	if err := h.contributions.Update(contribution); err != nil {
+		log.Printf("Error updating contribution: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -205,6 +214,7 @@ func (h *ContributionsHandler) ContributionsDelete(w http.ResponseWriter, r *htt
 	}
 
 	if err := h.contributions.Delete(id); err != nil {
+		log.Printf("Error deleting contribution by ID: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

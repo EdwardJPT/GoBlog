@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,6 +56,8 @@ func (h *BookmarkHandler) BookmarksList(w http.ResponseWriter, r *http.Request) 
 
 	bookmarks, err := h.bookmarks.GetAll(filter, status)
 	if err != nil {
+		log.Printf("Error fetching all bookmarks: %v", err)
+		log.Printf("filter: %s - status: %s", filter, status)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -110,6 +113,7 @@ func (h *BookmarkHandler) BookmarksCreate(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := h.bookmarks.Create(bookmark); err != nil {
+		log.Printf("Error creating bookmark: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -127,6 +131,7 @@ func (h *BookmarkHandler) BookmarksEdit(w http.ResponseWriter, r *http.Request) 
 
 	bookmark, err := h.bookmarks.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching bookmark by ID: %v", err)
 		http.Error(w, "Bookmark not found", http.StatusNotFound)
 		return
 	}
@@ -160,6 +165,7 @@ func (h *BookmarkHandler) BookmarksUpdate(w http.ResponseWriter, r *http.Request
 
 	bookmark, err := h.bookmarks.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching bookmark by ID: %v", err)
 		http.Error(w, "Bookmark not found", http.StatusNotFound)
 		return
 	}
@@ -171,6 +177,7 @@ func (h *BookmarkHandler) BookmarksUpdate(w http.ResponseWriter, r *http.Request
 	bookmark.Status = r.FormValue("status")
 
 	if err := h.bookmarks.Update(bookmark); err != nil {
+		log.Printf("Error updating bookmark: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -187,6 +194,7 @@ func (h *BookmarkHandler) BookmarksDelete(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := h.bookmarks.Delete(id); err != nil {
+		log.Printf("Error deleting bookmark by ID: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

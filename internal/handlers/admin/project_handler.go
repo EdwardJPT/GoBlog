@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,6 +56,8 @@ func (h *ProjectHandler) ProjectsList(w http.ResponseWriter, r *http.Request) {
 
 	projects, err := h.projects.GetAll(filter, status)
 	if err != nil {
+		log.Printf("Error fetching all projects: %v", err)
+		log.Printf("filter: %s - status: %s", filter, status)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -83,6 +86,8 @@ func (h *ProjectHandler) ProjectsListComponent(w http.ResponseWriter, r *http.Re
 
 	projects, err := h.projects.GetAll(filter, "published")
 	if err != nil {
+		log.Printf("Error fetching all projects: %v", err)
+		log.Printf("filter: %s", filter)
 		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -123,17 +128,19 @@ func (h *ProjectHandler) ProjectsCreate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	project := &models.Project{
-		Name:        r.FormValue("name"),
-		Slug:        models.GenerateSlug(r.FormValue("name")) + "-" + nanoId,
-		Description: r.FormValue("description"),
-		RepoLink:    r.FormValue("repo_link"),
-		DemoLink:    r.FormValue("demo_link"),
-		OtherLinks:  r.FormValue("other_links"),
-		Tags:        strings.ReplaceAll(r.FormValue("tags"), " ", ""),
-		Status:      r.FormValue("status"),
+		Name:                r.FormValue("name"),
+		Slug:                models.GenerateSlug(r.FormValue("name")) + "-" + nanoId,
+		Description:         r.FormValue("description"),
+		HomePageDescription: r.FormValue("home_page_description"),
+		RepoLink:            r.FormValue("repo_link"),
+		DemoLink:            r.FormValue("demo_link"),
+		OtherLinks:          r.FormValue("other_links"),
+		Tags:                strings.ReplaceAll(r.FormValue("tags"), " ", ""),
+		Status:              r.FormValue("status"),
 	}
 
 	if err := h.projects.Create(project); err != nil {
+		log.Printf("Error creating project: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -151,6 +158,7 @@ func (h *ProjectHandler) ProjectsEdit(w http.ResponseWriter, r *http.Request) {
 
 	project, err := h.projects.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching project by ID: %v", err)
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
@@ -184,6 +192,7 @@ func (h *ProjectHandler) ProjectsUpdate(w http.ResponseWriter, r *http.Request) 
 
 	project, err := h.projects.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching project by ID: %v", err)
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
@@ -198,6 +207,7 @@ func (h *ProjectHandler) ProjectsUpdate(w http.ResponseWriter, r *http.Request) 
 	project.Status = r.FormValue("status")
 
 	if err := h.projects.Update(project); err != nil {
+		log.Printf("Error updating project: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -214,6 +224,7 @@ func (h *ProjectHandler) ProjectsDelete(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := h.projects.Delete(id); err != nil {
+		log.Printf("Error deleting project by ID: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

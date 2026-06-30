@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,6 +56,8 @@ func (h *NoteHandler) NotesList(w http.ResponseWriter, r *http.Request) {
 
 	notes, err := h.notes.GetAll(filter, status)
 	if err != nil {
+		log.Printf("Error fetching all notes: %v", err)
+		log.Printf("filter: %s - status: %s", filter, status)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -83,6 +86,8 @@ func (h *NoteHandler) NotesListComponent(w http.ResponseWriter, r *http.Request)
 
 	notes, err := h.notes.GetAll(filter, "published")
 	if err != nil {
+		log.Printf("Error fetching all notes: %v", err)
+		log.Printf("filter: %s", filter)
 		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -131,6 +136,7 @@ func (h *NoteHandler) NotesCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.notes.Create(note); err != nil {
+		log.Printf("Error creating note: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -148,6 +154,7 @@ func (h *NoteHandler) NotesEdit(w http.ResponseWriter, r *http.Request) {
 
 	note, err := h.notes.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching note by ID: %v", err)
 		http.Error(w, "Note not found", http.StatusNotFound)
 		return
 	}
@@ -181,6 +188,7 @@ func (h *NoteHandler) NotesUpdate(w http.ResponseWriter, r *http.Request) {
 
 	note, err := h.notes.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching note by ID: %v", err)
 		http.Error(w, "Note not found", http.StatusNotFound)
 		return
 	}
@@ -191,6 +199,7 @@ func (h *NoteHandler) NotesUpdate(w http.ResponseWriter, r *http.Request) {
 	note.Status = r.FormValue("status")
 
 	if err := h.notes.Update(note); err != nil {
+		log.Printf("Error updating note: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -207,6 +216,7 @@ func (h *NoteHandler) NotesDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.notes.Delete(id); err != nil {
+		log.Printf("Error deleting note by ID: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

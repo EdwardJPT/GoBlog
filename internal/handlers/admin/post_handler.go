@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -55,6 +56,8 @@ func (h *PostHandler) PostsList(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := h.posts.GetAll(filter, status)
 	if err != nil {
+		log.Printf("Error fetching all posts: %v", err)
+		log.Printf("filter: %s - status: %s", filter, status)
 		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -83,6 +86,8 @@ func (h *PostHandler) PostsListComponent(w http.ResponseWriter, r *http.Request)
 
 	posts, err := h.posts.GetAll(filter, "published")
 	if err != nil {
+		log.Printf("Error fetching all posts: %v", err)
+		log.Printf("filter: %s", filter)
 		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -141,6 +146,7 @@ func (h *PostHandler) PostsCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.posts.Create(post); err != nil {
+		log.Printf("Error creating post: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -158,6 +164,7 @@ func (h *PostHandler) PostsEdit(w http.ResponseWriter, r *http.Request) {
 
 	post, err := h.posts.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching post by ID: %v", err)
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
@@ -191,6 +198,7 @@ func (h *PostHandler) PostsUpdate(w http.ResponseWriter, r *http.Request) {
 
 	post, err := h.posts.GetByID(id)
 	if err != nil {
+		log.Printf("Error fetching post by ID: %v", err)
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
@@ -206,7 +214,8 @@ func (h *PostHandler) PostsUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.posts.Update(post); err != nil {
-		http.Error(w, "Bookmark not found", http.StatusNotFound)
+		log.Printf("Error updating post: %v", err)
+		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
 
@@ -217,11 +226,12 @@ func (h *PostHandler) PostsDelete(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid bookmark ID", http.StatusBadRequest)
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.posts.Delete(id); err != nil {
+		log.Printf("Error deleting post by ID: %v", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
