@@ -32,7 +32,7 @@ func (r *NoteRepository) Create(note *Note) error {
 			content,
 			tags,
 			status
-		) VALUES (?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?)
 	`
 
 	result, err := r.db.Exec(

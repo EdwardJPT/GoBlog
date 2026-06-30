@@ -174,9 +174,9 @@ func (r *PostRepository) Update(post *Post) error {
 		WHERE id = :id
 	`
 
+	// TODO: Look at this feature!
 	_, err := r.db.Exec(
 		query,
-		// TODO: Look at this feature!
 		sql.Named("title", post.Title),
 		sql.Named("slug", post.Slug),
 		sql.Named("content", post.Content),

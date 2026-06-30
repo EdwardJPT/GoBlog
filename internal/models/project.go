@@ -34,12 +34,13 @@ func (r *ProjectRepository) Create(project *Project) error {
 			name,
 			slug,
 			description,
+			home_page_description,
 			repo_link,
 			demo_link,
 			other_links,
 			tags,
 			status
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
 	result, err := r.db.Exec(
@@ -47,6 +48,7 @@ func (r *ProjectRepository) Create(project *Project) error {
 		project.Name,
 		project.Slug,
 		project.Description,
+		project.HomePageDescription,
 		project.RepoLink,
 		project.DemoLink,
 		project.OtherLinks,

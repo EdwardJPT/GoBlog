@@ -32,10 +32,11 @@ func (r *ContributionRepository) Create(contribution *Contribution) error {
 			project_name,
 			slug,
 			description,
+			home_page_description,
 			tags,
 			link,
 			contribution_summary
-		) VALUES (?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?)
 	`
 
 	result, err := r.db.Exec(
@@ -43,6 +44,7 @@ func (r *ContributionRepository) Create(contribution *Contribution) error {
 		contribution.ProjectName,
 		contribution.Slug,
 		contribution.Description,
+		contribution.HomePageDescription,
 		contribution.Tags,
 		contribution.Link,
 		contribution.ContributionSummary,
