@@ -15,10 +15,33 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type ProjectsProjectRepo interface {
+	GetBySlug(slug string) (*models.Project, error)
+}
+
+type ProjectsContributionRepo interface {
+	GetBySlug(slug string) (*models.Contribution, error)
+}
+
+type ProjectsWorkRepo interface {
+	GetProjectsFeed(
+		selectedTypes []string,
+		encodedCursor string,
+		isPrev bool,
+		limit int,
+	) ([]models.WorkItem, error)
+
+	HasPublishedRowsAroundCursor(
+		selectedTypes []string,
+		firstTimestamp time.Time,
+		lastTimestamp time.Time,
+	) (hasPrev bool, hasNext bool, err error)
+}
+
 type WorksHandler struct {
-	projects      *models.ProjectRepository
-	contributions *models.ContributionRepository
-	works         *models.WorkRepository
+	projects      ProjectsProjectRepo
+	contributions ProjectsContributionRepo
+	works         ProjectsWorkRepo
 	templates     *template.Template
 }
 

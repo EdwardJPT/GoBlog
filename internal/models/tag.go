@@ -68,13 +68,25 @@ func statusClause(t tagTable) string {
 	return ""
 }
 
+func isFilter(filter string) string {
+	if filter != "" {
+		return "AND (',' || LOWER(tags) || ',') LIKE ('%%,' || LOWER(?) || ',%%')"
+	}
+	return ""
+}
+
 // GetAllTags queries every tag from all content tables, then returns a
 // deduplicated, alphabetically-sorted slice of Tag values — each carrying
 // the total count of how many rows across all tables reference that tag.
 //
+// notes tag#001 (<- search this to see the relation in another place)
+// Currently the search feature also return another tags that are exist
+// in the same content. For example, if there's post a that has tags, go,backend,server
+// and if we search for 'go', it will also return backend and server too
+//
 // Only published rows are counted (tables without a status column are
 // included in full). Empty or blank tag segments are silently skipped.
-func (r *TagRepository) GetAllTags(selectedTypes []string) ([]Tag, error) {
+func (r *TagRepository) GetAllTags(filter string, selectedTypes []string) ([]Tag, error) {
 	counts := make(map[string]int)
 
 	if len(selectedTypes) == 0 {
@@ -94,12 +106,18 @@ func (r *TagRepository) GetAllTags(selectedTypes []string) ([]Tag, error) {
 
 		// #nosec G201 — table names come from a hardcoded slice, not user input.
 		query := fmt.Sprintf(
-			`SELECT tags FROM %s WHERE tags IS NOT NULL AND tags != '' %s`,
+			`SELECT tags FROM %s WHERE tags IS NOT NULL AND tags != '' %s %s`,
 			table.name,
+			isFilter(filter),
 			statusClause(table),
 		)
 
-		rows, err := r.db.Query(query)
+		args := []any{}
+		if filter != "" {
+			args = append(args, filter)
+		}
+
+		rows, err := r.db.Query(query, args...)
 		if err != nil {
 			return nil, err
 		}
@@ -133,7 +151,7 @@ func (r *TagRepository) GetAllTags(selectedTypes []string) ([]Tag, error) {
 // GetAllTagNames is a convenience wrapper that returns only the tag name
 // strings, sorted alphabetically — useful when counts are not needed.
 func (r *TagRepository) GetAllTagNames() ([]string, error) {
-	tags, err := r.GetAllTags([]string{
+	tags, err := r.GetAllTags("", []string{
 		"posts",
 		"bookmarks",
 		"notes",
@@ -633,5 +651,5 @@ func processTagsString(tagsStr, oldTag, newTag string) (string, bool) {
 		}
 	}
 
-	return strings.Join(updated, ", "), changed
+	return strings.Join(updated, ","), changed
 }

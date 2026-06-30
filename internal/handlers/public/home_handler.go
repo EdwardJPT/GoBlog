@@ -39,7 +39,6 @@ type HomeSelectedRepo interface {
 	GetAllWritings() ([]*models.SelectedWritingsValue, error)
 }
 
-// TODO: Also apply this kind of limitation to another handlers
 type HomeHandler struct {
 	posts         HomePostRepo
 	bookmarks     HomeBookmarkRepo

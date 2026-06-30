@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"time"
 
 	"blog/internal/models"
 	"blog/internal/utils"
@@ -13,8 +14,27 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type TagsRepo interface {
+	GetAllTags(filter string, selectedTypes []string) ([]models.Tag, error)
+
+	GetContentByTag(
+		tag string,
+		selectedTypes []string,
+		encodedCursor string,
+		isPrev bool,
+		limit int,
+	) ([]*models.TagItem, error)
+
+	HasPublishedRowsAroundCursor(
+		tag string,
+		selectedTypes []string,
+		firstTimestamp time.Time,
+		lastTimestamp time.Time,
+	) (hasPrev bool, hasNext bool, err error)
+}
+
 type TagsHandler struct {
-	tags      *models.TagRepository
+	tags      TagsRepo
 	templates *template.Template
 }
 
@@ -35,7 +55,9 @@ func (h *TagsHandler) TagsList(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	selectedTypes := r.Form["type"]
 
-	tags, err := h.tags.GetAllTags(selectedTypes)
+	// notes tag#001 (<- search this to see the relation in another place)
+	// Maybe one day we are going to implement the search result
+	tags, err := h.tags.GetAllTags("", selectedTypes)
 	if err != nil {
 		log.Printf("Error fetching tags list: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

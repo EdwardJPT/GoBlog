@@ -39,6 +39,7 @@ type TagsListData struct {
 }
 
 type TagEditData struct {
+	*admin_service.StatsCardData
 	TagName     string
 	SectionType string
 }
@@ -51,15 +52,21 @@ func (h *TagsHandler) TagsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	filter := r.URL.Query().Get("q")
 	r.ParseForm()
 	selectedTypes := r.Form["type"]
 
-	tags, err := h.tags.GetAllTags(selectedTypes)
+	tags, err := h.tags.GetAllTags(filter, selectedTypes)
 	if err != nil {
 		log.Printf("Error fetching tags list: %v", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+
+	// notes tag#001 (<- search this to see the relation in another place)
+	// We don't filter the returned search result in this admin page because
+	// I think I want to see what other tags that also exist with the tag that
+	// I searched
 
 	data := TagsListData{
 		StatsCardData: statsData,
@@ -76,13 +83,21 @@ func (h *TagsHandler) TagsList(w http.ResponseWriter, r *http.Request) {
 func (h *TagsHandler) EditTagPage(w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "name")
 	if name == "" {
-		http.Redirect(w, r, "/admin/tags", http.StatusSeeOther)
+		http.Redirect(w, r, "/nimda/tags", http.StatusSeeOther)
+		return
+	}
+
+	statsData, err := h.stats.FetchStatsData()
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
 
 	data := TagEditData{
-		TagName:     name,
-		SectionType: "tags-form",
+		StatsCardData: statsData,
+		TagName:       name,
+		SectionType:   "tags-form",
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "tags-layout", data); err != nil {
@@ -110,7 +125,7 @@ func (h *TagsHandler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	http.Redirect(w, r, "/admin/tags", http.StatusSeeOther)
+	http.Redirect(w, r, "/nimda/tags", http.StatusSeeOther)
 }
 
 func (h *TagsHandler) DeleteTag(w http.ResponseWriter, r *http.Request) {
@@ -123,5 +138,5 @@ func (h *TagsHandler) DeleteTag(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, "/admin/tags", http.StatusSeeOther)
+	http.Redirect(w, r, "/nimda/tags", http.StatusSeeOther)
 }

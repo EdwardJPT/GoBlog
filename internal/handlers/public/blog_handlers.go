@@ -15,11 +15,38 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type BlogPostRepo interface {
+	GetBySlug(slug string) (*models.Post, error)
+}
+
+type BlogNoteRepo interface {
+	GetBySlug(slug string) (*models.Note, error)
+}
+
+type BlogBookmarkRepo interface {
+	GetBySlug(slug string) (*models.Bookmark, error)
+}
+
+type BlogWritingRepo interface {
+	GetBlogFeed(
+		selectedTypes []string,
+		encodedCursor string,
+		isPrev bool,
+		limit int,
+	) ([]models.BlogItem, error)
+
+	HasPublishedRowsAroundCursor(
+		selectedTypes []string,
+		firstTimestamp time.Time,
+		lastTimestamp time.Time,
+	) (hasPrev bool, hasNext bool, err error)
+}
+
 type WritingsHandler struct {
-	posts     *models.PostRepository
-	notes     *models.NoteRepository
-	bookmarks *models.BookmarkRepository
-	writings  *models.WritingRepository
+	posts     BlogPostRepo
+	notes     BlogNoteRepo
+	bookmarks BlogBookmarkRepo
+	writings  BlogWritingRepo
 	templates *template.Template
 }
 
