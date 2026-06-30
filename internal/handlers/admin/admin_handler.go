@@ -102,6 +102,7 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	admin, err := h.auth.GetByUsername(formData.Username)
 	if err != nil {
 		log.Println("Query admin username error:", err)
+		log.Println("admin username:", formData.Username)
 
 		h.auth.RecordFailure(id.IP)
 

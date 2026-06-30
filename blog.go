@@ -55,9 +55,13 @@ func main() {
 		log.Fatal("JWT_SECRET environment variable is not set")
 	}
 	jwt := jwtauth.New("HS256", []byte(jwtSecret), nil)
+	// Dummy hash
+	hash := utils.GenerateDummyHash()
 
 	// Init handlers by passing the db and jwt
 	// PUBLIC HANDLERS
+	// TODO: Since both public and admin handler has the access to the database
+	// create interfaces to limit the access of public handler
 	homeHandler := handlers.NewHomeHandler(db)
 	aboutHandler := handlers.NewAboutHandler()
 	writingsHandler := handlers.NewWritingsHandler(db)
@@ -65,18 +69,14 @@ func main() {
 	notFoundHandler := handlers.NewNotFoundHandler()
 	tagsHandler := handlers.NewTagsHandler(db)
 	// ADMIN HANDLERS
-	adminHandler := admin_handlers.NewAdminHandler(
-		db,
-		dbRAM,
-		jwt,
-		utils.GenerateDummyHash(),
-	)
+	authHandler := admin_handlers.NewAdminHandler(db, dbRAM, jwt, hash)
 	postsHandler := admin_handlers.NewPostHandler(db)
 	notesHandler := admin_handlers.NewNoteHandler(db)
 	bookmarksHandler := admin_handlers.NewBookmarkHandler(db)
 	projectsHandler := admin_handlers.NewProjectHandler(db)
 	contributionsHandler := admin_handlers.NewContributionsHandler(db)
 	selectedHandler := admin_handlers.NewSelectedHandler(db)
+	adminTagsHandler := admin_handlers.NewTagHandler(db)
 
 	// Init the chi router
 	r := chi.NewRouter()
@@ -138,17 +138,17 @@ func main() {
 		r.Group(func(r chi.Router) {
 			// Redirects already authenticated users away from the login page
 			r.Use(admin_middlewares.AuthenticatedRedirector(jwt))
-			r.Get("/", adminHandler.AdminPage)
+			r.Get("/", authHandler.AdminPage)
 		})
-		r.Post("/", adminHandler.SignIn)
-		r.Get("/logout", adminHandler.SignOut)
+		r.Post("/", authHandler.SignIn)
+		r.Get("/logout", authHandler.SignOut)
 
 		// Protected admin router
 		r.Group(func(r chi.Router) {
 			r.Use(admin_middlewares.Auth(jwt))
 
 			// Dashboard
-			r.Get("/dashboard", adminHandler.DashboardPage)
+			r.Get("/dashboard", authHandler.DashboardPage)
 
 			// Content Management
 			r.Route("/posts", func(r chi.Router) {
@@ -214,26 +214,15 @@ func main() {
 
 			// TODO: Postponed /nimda/selected-experiences (hardcoded for now)
 			r.Route("/experiences", func(r chi.Router) {
-				r.Get("/", adminHandler.DashboardPage)
+				r.Get("/", authHandler.DashboardPage)
 			})
 
 			// Tags
 			r.Route("/tags", func(r chi.Router) {
-				r.Get("/", adminHandler.DashboardPage)
-				r.Get("/new", adminHandler.DashboardPage)
-				r.Post("/", adminHandler.DashboardPage)
-				r.Get("/{id}/edit", adminHandler.DashboardPage)
-				r.Post("/{id}", adminHandler.DashboardPage)
-				r.Post("/{id}/delete", adminHandler.DashboardPage)
-				/*
-				   TODO:
-				   r.Get("/", adminHandler.TagsList)
-				   r.Get("/{tag}", adminHandler.TagsShow)
-				   r.Get("/{tag}/edit", adminHandler.TagsEditForm)
-				   r.Post("/{tag}/edit", adminHandler.TagsUpdate)
-				   r.Post("/{tag}/delete", adminHandler.TagsDelete)
-				   r.Get("/{tag}/{table}", adminHandler.TagsShowByTable)
-				*/
+				r.Get("/", adminTagsHandler.TagsList)
+				r.Get("/{name}/edit", adminTagsHandler.EditTagPage)
+				r.Post("/{name}", adminTagsHandler.UpdateTag)
+				r.Post("/{name}/delete", adminTagsHandler.DeleteTag)
 			})
 		})
 	})

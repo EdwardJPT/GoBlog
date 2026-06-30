@@ -13,8 +13,13 @@ import (
 	"blog/internal/utils"
 )
 
+// TODO: Also apply this to all
+type HomePostRepo interface {
+	GetRecentPublished(limit int) ([]*models.Post, error)
+}
+
 type HomeHandler struct {
-	posts         *models.PostRepository
+	posts         HomePostRepo
 	bookmarks     *models.BookmarkRepository
 	notes         *models.NoteRepository
 	projects      *models.ProjectRepository
@@ -60,11 +65,11 @@ type HomePageData struct {
 func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	// To store the result of the query
 	groups := map[string][]FeedItem{
-		"post":         []FeedItem{},
-		"bookmark":     []FeedItem{},
-		"note":         []FeedItem{},
-		"project":      []FeedItem{},
-		"contribution": []FeedItem{},
+		"post":         {},
+		"bookmark":     {},
+		"note":         {},
+		"project":      {},
+		"contribution": {},
 	}
 
 	// TODO: move this to middleware

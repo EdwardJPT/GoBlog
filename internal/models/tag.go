@@ -526,63 +526,112 @@ func replaceTagInString(tagsStr, oldTag, newTag string) string {
 	return strings.Join(newParts, ",")
 }
 
-func (r *TagRepository) RenameTag(oldTag, newTag string) error {
-	tx, err := r.db.Begin()
+// RenameTag updates a tag's name across all 5 tables
+func (r *TagRepository) RenameTag(oldName, newName string) error {
+	oldName = strings.TrimSpace(strings.ToLower(oldName))
+	newName = strings.TrimSpace(strings.ToLower(newName))
+
+	if oldName == "" || newName == "" || oldName == newName {
+		return nil
+	}
+
+	for _, table := range tagTables {
+		if err := r.replaceTagInTable(table.name, oldName, newName); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// DeleteTag completely removes a tag from all 5 tables
+func (r *TagRepository) DeleteTag(name string) error {
+	name = strings.TrimSpace(strings.ToLower(name))
+	if name == "" {
+		return nil
+	}
+
+	for _, table := range tagTables {
+		// Passing an empty string as newName instructs the helper to remove the tag
+		if err := r.replaceTagInTable(table.name, name, ""); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// replaceTagInTable fetches rows containing the tag, manipulates the string safely, and updates the row
+func (r *TagRepository) replaceTagInTable(tableName, oldTag, newTag string) error {
+	// Use LIKE to narrow down rows, minimizing the amount of data we process in Go
+	query := fmt.Sprintf(`SELECT id, tags FROM %s WHERE tags LIKE ?`, tableName)
+	likePattern := "%" + oldTag + "%"
+
+	rows, err := r.db.Query(query, likePattern)
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer rows.Close()
 
-	likePattern := "%" + oldTag + "%"
+	type updateData struct {
+		id      int64
+		newTags string
+	}
+	var updates []updateData
 
-	for _, t := range tagTables {
-		query := fmt.Sprintf(`SELECT id, tags FROM %s WHERE tags LIKE ?`, t.name)
-		rows, err := tx.Query(query, likePattern)
-		if err != nil {
+	for rows.Next() {
+		var id int64
+		var currentTags string
+		if err := rows.Scan(&id, &currentTags); err != nil {
 			return err
 		}
 
-		type updateReq struct {
-			id      int64
-			newTags string
-		}
-		var updates []updateReq
-
-		for rows.Next() {
-			var id int64
-			var tagsStr sql.NullString
-			if err := rows.Scan(&id, &tagsStr); err != nil {
-				rows.Close()
-				return err
-			}
-			if tagsStr.Valid {
-				parts := strings.Split(tagsStr.String, ",")
-				hasTag := false
-				for _, p := range parts {
-					if strings.TrimSpace(p) == oldTag {
-						hasTag = true
-						break
-					}
-				}
-				if hasTag {
-					newTags := replaceTagInString(tagsStr.String, oldTag, newTag)
-					updates = append(updates, updateReq{id, newTags})
-				}
-			}
-		}
-		rows.Close()
-
-		updateQuery := fmt.Sprintf(`UPDATE %s SET tags = ? WHERE id = ?`, t.name)
-		for _, req := range updates {
-			if _, err := tx.Exec(updateQuery, req.newTags, req.id); err != nil {
-				return err
-			}
+		updatedTagsStr, changed := processTagsString(currentTags, oldTag, newTag)
+		if changed {
+			updates = append(updates, updateData{id: id, newTags: updatedTagsStr})
 		}
 	}
 
-	return tx.Commit()
+	// Perform the updates for rows that actually contained the exact tag
+	updateQuery := fmt.Sprintf(`UPDATE %s SET tags = ? WHERE id = ?`, tableName)
+	for _, u := range updates {
+		if _, err := r.db.Exec(updateQuery, u.newTags, u.id); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func (r *TagRepository) DeleteTag(tag string) error {
-	return r.RenameTag(tag, "")
+// processTagsString handles the comma-separated manipulation safely (prevents substring matching bugs)
+func processTagsString(tagsStr, oldTag, newTag string) (string, bool) {
+	parts := strings.Split(tagsStr, ",")
+	changed := false
+	var updated []string
+
+	for _, p := range parts {
+		t := strings.TrimSpace(p)
+		if t == "" {
+			continue
+		}
+
+		if strings.EqualFold(t, oldTag) {
+			changed = true
+			if newTag != "" {
+				// Avoid duplicate tags if renaming to a tag that already exists on this item
+				exists := false
+				for _, existing := range updated {
+					if strings.EqualFold(existing, newTag) {
+						exists = true
+						break
+					}
+				}
+				if !exists {
+					updated = append(updated, newTag)
+				}
+			}
+		} else {
+			updated = append(updated, t)
+		}
+	}
+
+	return strings.Join(updated, ", "), changed
 }
