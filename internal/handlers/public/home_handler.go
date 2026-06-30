@@ -13,18 +13,40 @@ import (
 	"blog/internal/utils"
 )
 
-// TODO: Also apply this to all
 type HomePostRepo interface {
 	GetRecentPublished(limit int) ([]*models.Post, error)
 }
 
+type HomeBookmarkRepo interface {
+	GetRecentPublished(limit int) ([]*models.Bookmark, error)
+}
+
+type HomeNoteRepo interface {
+	GetRecentPublished(limit int) ([]*models.Note, error)
+}
+
+type HomeProjectRepo interface {
+	GetRecentPublished(limit int) ([]*models.Project, error)
+}
+
+type HomeContributionRepo interface {
+	GetRecentPublished(limit int) ([]*models.Contribution, error)
+}
+
+type HomeSelectedRepo interface {
+	GetAllWorks() ([]*models.SelectedWorksValue, error)
+	GetAllTechStackLayouts() (map[int64][]string, error)
+	GetAllWritings() ([]*models.SelectedWritingsValue, error)
+}
+
+// TODO: Also apply this kind of limitation to another handlers
 type HomeHandler struct {
 	posts         HomePostRepo
-	bookmarks     *models.BookmarkRepository
-	notes         *models.NoteRepository
-	projects      *models.ProjectRepository
-	contributions *models.ContributionRepository
-	selected      *models.SelectedRepository
+	bookmarks     HomeBookmarkRepo
+	notes         HomeNoteRepo
+	projects      HomeProjectRepo
+	contributions HomeContributionRepo
+	selected      HomeSelectedRepo
 	templates     *template.Template
 }
 
