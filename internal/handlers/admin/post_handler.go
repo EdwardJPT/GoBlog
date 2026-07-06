@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	handlers "blog/internal/handlers/public"
 	"blog/internal/models"
-	admin_service "blog/internal/service/admin"
+	admin_services "blog/internal/services/admin"
 	"blog/internal/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -19,7 +20,7 @@ import (
 
 type PostHandler struct {
 	posts     *models.PostRepository
-	stats     *admin_service.StatsService
+	stats     *admin_services.StatsService
 	templates *template.Template
 }
 
@@ -27,16 +28,17 @@ func NewPostHandler(db *sql.DB) *PostHandler {
 	tmpl := template.New("").Funcs(utils.RegisterTemplateFuncs())
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/posts/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/components/*.html"))
+	tmpl = template.Must(tmpl.ParseGlob("web/templates/public/blog/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/components/*.html"))
 	return &PostHandler{
 		posts:     models.NewPostRepository(db),
-		stats:     admin_service.NewStatsService(db),
+		stats:     admin_services.NewStatsService(db),
 		templates: tmpl,
 	}
 }
 
 type PostListData struct {
-	*admin_service.StatsCardData
+	*admin_services.StatsCardData
 	Filter      string
 	Status      string
 	Posts       []*models.Post
@@ -180,6 +182,34 @@ func (h *PostHandler) PostsEdit(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
 		return
+	}
+}
+
+func (h *PostHandler) PostsPreview(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	post, err := h.posts.GetByID(id)
+	if err != nil {
+		log.Printf("Error fetching post by ID: %v", err)
+		http.Error(w, "Post not found", http.StatusNotFound)
+		return
+	}
+
+	postContent := handlers.PostContent{
+		Title:       post.Title,
+		Content:     utils.RenderMarkdown(post.Content),
+		Tags:        post.Tags,
+		PublishedAt: post.UpdatedAt,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "published_post_layout", postContent); err != nil {
+		log.Println("handlers.Post error:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 

@@ -180,7 +180,7 @@ func (h *WorksHandler) Project(w http.ResponseWriter, r *http.Request) {
 		PublishedAt: project.UpdatedAt,
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "project_layout", projectContent); err != nil {
+	if err := h.templates.ExecuteTemplate(w, "published_project_layout", projectContent); err != nil {
 		log.Println("handlers.Project error:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
@@ -205,7 +205,7 @@ func (h *WorksHandler) OpenSourceContribution(w http.ResponseWriter, r *http.Req
 		PublishedAt:         contribution.UpdatedAt,
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "contribution_layout", contributionContent); err != nil {
+	if err := h.templates.ExecuteTemplate(w, "published_contribution_layout", contributionContent); err != nil {
 		log.Println("handlers.OpenSourceContribution error:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}

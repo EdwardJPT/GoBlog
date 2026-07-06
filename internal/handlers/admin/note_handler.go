@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	handlers "blog/internal/handlers/public"
 	"blog/internal/models"
-	admin_service "blog/internal/service/admin"
+	admin_services "blog/internal/services/admin"
 	"blog/internal/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -19,7 +20,7 @@ import (
 
 type NoteHandler struct {
 	notes     *models.NoteRepository
-	stats     *admin_service.StatsService
+	stats     *admin_services.StatsService
 	templates *template.Template
 }
 
@@ -27,16 +28,17 @@ func NewNoteHandler(db *sql.DB) *NoteHandler {
 	tmpl := template.New("").Funcs(utils.RegisterTemplateFuncs())
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/notes/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/components/*.html"))
+	tmpl = template.Must(tmpl.ParseGlob("web/templates/public/blog/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/components/*.html"))
 	return &NoteHandler{
 		notes:     models.NewNoteRepository(db),
-		stats:     admin_service.NewStatsService(db),
+		stats:     admin_services.NewStatsService(db),
 		templates: tmpl,
 	}
 }
 
 type NoteListData struct {
-	*admin_service.StatsCardData
+	*admin_services.StatsCardData
 	Filter      string
 	Status      string
 	Notes       []*models.Note
@@ -170,6 +172,34 @@ func (h *NoteHandler) NotesEdit(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
 		return
+	}
+}
+
+func (h *NoteHandler) NotesPreview(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid note ID", http.StatusBadRequest)
+		return
+	}
+
+	note, err := h.notes.GetByID(id)
+	if err != nil {
+		log.Printf("Error fetching note by ID: %v", err)
+		http.Error(w, "Note not found", http.StatusNotFound)
+		return
+	}
+
+	noteContent := handlers.NoteContent{
+		Title:       note.Title,
+		Content:     utils.RenderMarkdown(note.Content),
+		Tags:        note.Tags,
+		PublishedAt: note.UpdatedAt,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "published_note_layout", noteContent); err != nil {
+		log.Println("handlers.Note error:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 

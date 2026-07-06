@@ -1,4 +1,4 @@
-package admin_service
+package admin_services
 
 import (
 	"blog/internal/models"

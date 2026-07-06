@@ -2,8 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"errors"
-	"log"
+	"fmt"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite"
@@ -14,25 +13,21 @@ import (
 func RunMigrations(db *sql.DB) error {
 	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
 	if err != nil {
-		log.Println(err)
-		return errors.New("SQLite driver error")
+		return fmt.Errorf("init sqlite driver: %w", err)
 	}
 
 	src, err := iofs.New(Migrations(), "migrations")
 	if err != nil {
-		log.Println(err)
-		return errors.New("iofs source error")
+		return fmt.Errorf("iofs source: %w", err)
 	}
 
 	m, err := migrate.NewWithInstance("iofs", src, "sqlite", driver)
 	if err != nil {
-		log.Println(err)
-		return errors.New("Migrate init error")
+		return fmt.Errorf("migrate init: %w", err)
 	}
 
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Println(err)
-		return errors.New("Migration error")
+		return fmt.Errorf("migrating: %w", err)
 	}
 
 	return nil

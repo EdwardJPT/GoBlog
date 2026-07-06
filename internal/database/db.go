@@ -2,8 +2,7 @@ package database
 
 import (
 	"database/sql"
-	"errors"
-	"log"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -12,21 +11,18 @@ func InitSQLite() (*sql.DB, error) {
 	dbUri := "./sqlite_files/blog.db?_foreign_keys=yes&_journal_mode=WAL"
 	db, err := sql.Open("sqlite3", dbUri)
 	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Fail to create/open the database")
+		return nil, fmt.Errorf("create/open sqlite path: %w", err)
 	}
 
 	if err = db.Ping(); err != nil {
-		log.Println(err)
-		return nil, errors.New("Fail to ping the database")
+		return nil, fmt.Errorf("ping the database: %w", err)
 	}
 
 	// Set foreign_keys = ON with query too for safety
 	sqlStmt := `PRAGMA foreign_keys = ON;`
 	_, err = db.Exec(sqlStmt)
 	if err != nil {
-		log.Println(err)
-		return nil, errors.New("Fail to set foreign_keys = on")
+		return nil, fmt.Errorf("set the foreign_keys = on: %w", err)
 	}
 
 	return db, nil
@@ -42,6 +38,13 @@ func CheckJournalMode(db *sql.DB) string {
 	var journalMode string
 	db.QueryRow("PRAGMA journal_mode;").Scan(&journalMode)
 	return journalMode
+}
+
+func CheckSynchronous(db *sql.DB) string {
+	var synchronous int
+	syncMode := map[int]string{0: "OFF", 1: "NORMAL", 2: "FULL", 3: "EXTRA"}
+	db.QueryRow("PRAGMA synchronous;").Scan(&synchronous)
+	return syncMode[synchronous]
 }
 
 func CheckCacheSize(db *sql.DB) int {

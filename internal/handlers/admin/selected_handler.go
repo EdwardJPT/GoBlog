@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	"blog/internal/models"
-	admin_service "blog/internal/service/admin"
+	admin_services "blog/internal/services/admin"
 	"blog/internal/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -18,7 +18,7 @@ import (
 
 type SelectedHandler struct {
 	selected  *models.SelectedRepository
-	stats     *admin_service.StatsService
+	stats     *admin_services.StatsService
 	templates *template.Template
 }
 
@@ -30,13 +30,13 @@ func NewSelectedHandler(db *sql.DB) *SelectedHandler {
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/components/*.html"))
 	return &SelectedHandler{
 		selected:  models.NewSelectedRepository(db),
-		stats:     admin_service.NewStatsService(db),
+		stats:     admin_services.NewStatsService(db),
 		templates: tmpl,
 	}
 }
 
 type WritingsListData struct {
-	*admin_service.StatsCardData
+	*admin_services.StatsCardData
 	Writings    []*models.SelectedWritingsValue
 	Filter      string
 	SectionType string
@@ -91,7 +91,7 @@ func (h *SelectedHandler) AddWritings(w http.ResponseWriter, r *http.Request) {
 }
 
 type WorksListData struct {
-	*admin_service.StatsCardData
+	*admin_services.StatsCardData
 	Works      []*models.SelectedWorksValue
 	TechStacks map[int64][]string
 }

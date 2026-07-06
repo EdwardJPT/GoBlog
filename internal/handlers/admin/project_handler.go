@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	handlers "blog/internal/handlers/public"
 	"blog/internal/models"
-	admin_service "blog/internal/service/admin"
+	admin_services "blog/internal/services/admin"
 	"blog/internal/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -19,7 +20,7 @@ import (
 
 type ProjectHandler struct {
 	projects  *models.ProjectRepository
-	stats     *admin_service.StatsService
+	stats     *admin_services.StatsService
 	templates *template.Template
 }
 
@@ -27,16 +28,17 @@ func NewProjectHandler(db *sql.DB) *ProjectHandler {
 	tmpl := template.New("").Funcs(utils.RegisterTemplateFuncs())
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/projects/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/components/*.html"))
+	tmpl = template.Must(tmpl.ParseGlob("web/templates/public/projects/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/components/*.html"))
 	return &ProjectHandler{
 		projects:  models.NewProjectRepository(db),
-		stats:     admin_service.NewStatsService(db),
+		stats:     admin_services.NewStatsService(db),
 		templates: tmpl,
 	}
 }
 
 type ProjectListData struct {
-	*admin_service.StatsCardData
+	*admin_services.StatsCardData
 	Filter      string
 	Status      string
 	Projects    []*models.Project
@@ -174,6 +176,37 @@ func (h *ProjectHandler) ProjectsEdit(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
 		return
+	}
+}
+
+func (h *ProjectHandler) ProjectsPreview(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid note ID", http.StatusBadRequest)
+		return
+	}
+
+	project, err := h.projects.GetByID(id)
+	if err != nil {
+		log.Printf("Error fetching project by ID: %v", err)
+		http.Error(w, "Project not found", http.StatusNotFound)
+		return
+	}
+
+	projectContent := handlers.ProjectContent{
+		Title:       project.Name,
+		Description: utils.RenderMarkdown(project.Description),
+		Repo_link:   project.RepoLink,
+		Demo_link:   project.DemoLink,
+		Other_links: project.OtherLinks,
+		Tags:        project.Tags,
+		PublishedAt: project.UpdatedAt,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "published_project_layout", projectContent); err != nil {
+		log.Println("handlers.Project error:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 

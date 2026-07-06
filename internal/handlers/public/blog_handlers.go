@@ -192,7 +192,7 @@ func (h *WritingsHandler) Post(w http.ResponseWriter, r *http.Request) {
 		PublishedAt: post.UpdatedAt,
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "post_layout", postContent); err != nil {
+	if err := h.templates.ExecuteTemplate(w, "published_post_layout", postContent); err != nil {
 		log.Println("handlers.Post error:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
@@ -215,7 +215,7 @@ func (h *WritingsHandler) Note(w http.ResponseWriter, r *http.Request) {
 		PublishedAt: note.UpdatedAt,
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "note_layout", noteContent); err != nil {
+	if err := h.templates.ExecuteTemplate(w, "published_note_layout", noteContent); err != nil {
 		log.Println("handlers.Note error:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
@@ -239,7 +239,7 @@ func (h *WritingsHandler) Bookmark(w http.ResponseWriter, r *http.Request) {
 		PublishedAt: bookmark.UpdatedAt,
 	}
 
-	if err := h.templates.ExecuteTemplate(w, "bookmark_layout", bookmarkContent); err != nil {
+	if err := h.templates.ExecuteTemplate(w, "published_bookmark_layout", bookmarkContent); err != nil {
 		log.Println("handlers.Bookmark error:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}

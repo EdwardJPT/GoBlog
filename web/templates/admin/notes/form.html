@@ -75,9 +75,15 @@
     <a href="/nimda/notes" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
       Cancel
     </a>
-    <button type="submit" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
-      {{if .IsEdit}}Update{{else}}Create{{end}} Note
-    </button>
+    <div>
+      <a href="/nimda/notes/{{.ID}}/preview" target="_blank"
+        class="px-4 py-2 mr-2 text-white bg-yellow-500 border border-gray-300 rounded-lg hover:bg-yellow-700">
+        Preview
+      </a>
+      <button type="submit" class="px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700">
+        {{if .IsEdit}}Update{{else}}Create{{end}} Note
+      </button>
+    </div>
   </div>
 </form>
 

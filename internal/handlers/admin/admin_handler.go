@@ -11,7 +11,7 @@ import (
 
 	admin_middlewares "blog/internal/middlewares/admin"
 	"blog/internal/models"
-	admin_service "blog/internal/service/admin"
+	admin_services "blog/internal/services/admin"
 	"blog/internal/utils"
 
 	"github.com/go-chi/jwtauth/v5"
@@ -27,7 +27,7 @@ type AdminHandler struct {
 	notes         *models.NoteRepository
 	projects      *models.ProjectRepository
 	contributions *models.ContributionRepository
-	stats         *admin_service.StatsService
+	stats         *admin_services.StatsService
 	templates     *template.Template
 }
 
@@ -51,7 +51,7 @@ func NewAdminHandler(
 		notes:         models.NewNoteRepository(db),
 		projects:      models.NewProjectRepository(db),
 		contributions: models.NewContributionRepository(db),
-		stats:         admin_service.NewStatsService(db),
+		stats:         admin_services.NewStatsService(db),
 		templates:     tmpl,
 	}
 }
@@ -178,8 +178,8 @@ func (h *AdminHandler) SignOut(w http.ResponseWriter, r *http.Request) {
 }
 
 type DashboardData struct {
-	*admin_service.StatsCardData
-	admin_service.RecentData
+	*admin_services.StatsCardData
+	admin_services.RecentData
 }
 
 func (h *AdminHandler) DashboardPage(w http.ResponseWriter, r *http.Request) {
@@ -235,7 +235,7 @@ func (h *AdminHandler) DashboardPage(w http.ResponseWriter, r *http.Request) {
 		// Statistics
 		StatsCardData: statsData,
 		// Recent Posts
-		RecentData: admin_service.RecentData{
+		RecentData: admin_services.RecentData{
 			RecentPosts: postRecent,
 			// Recent Bookmarks
 			RecentBookmarks: bookmarkRecent,

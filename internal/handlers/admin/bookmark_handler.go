@@ -9,8 +9,9 @@ import (
 	"strconv"
 	"strings"
 
+	handlers "blog/internal/handlers/public"
 	"blog/internal/models"
-	admin_service "blog/internal/service/admin"
+	admin_services "blog/internal/services/admin"
 	"blog/internal/utils"
 
 	"github.com/go-chi/chi/v5"
@@ -19,7 +20,7 @@ import (
 
 type BookmarkHandler struct {
 	bookmarks *models.BookmarkRepository
-	stats     *admin_service.StatsService
+	stats     *admin_services.StatsService
 	templates *template.Template
 }
 
@@ -27,16 +28,17 @@ func NewBookmarkHandler(db *sql.DB) *BookmarkHandler {
 	tmpl := template.New("").Funcs(utils.RegisterTemplateFuncs())
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/bookmarks/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/admin/components/*.html"))
+	tmpl = template.Must(tmpl.ParseGlob("web/templates/public/blog/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/components/*.html"))
 	return &BookmarkHandler{
 		bookmarks: models.NewBookmarkRepository(db),
-		stats:     admin_service.NewStatsService(db),
+		stats:     admin_services.NewStatsService(db),
 		templates: tmpl,
 	}
 }
 
 type BookmarkListData struct {
-	*admin_service.StatsCardData
+	*admin_services.StatsCardData
 	Filter      string
 	Status      string
 	Bookmarks   []*models.Bookmark
@@ -147,6 +149,35 @@ func (h *BookmarkHandler) BookmarksEdit(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
 		return
+	}
+}
+
+func (h *BookmarkHandler) BookmarksPreview(w http.ResponseWriter, r *http.Request) {
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "Invalid bookmark ID", http.StatusBadRequest)
+		return
+	}
+
+	bookmark, err := h.bookmarks.GetByID(id)
+	if err != nil {
+		log.Printf("Error fetching bookmark by ID: %v", err)
+		http.Error(w, "Bookmark not found", http.StatusNotFound)
+		return
+	}
+
+	bookmarkContent := handlers.BookmarkContent{
+		Title:       bookmark.Title,
+		Content:     utils.RenderMarkdown(bookmark.Description),
+		Tags:        bookmark.Tags,
+		URL:         bookmark.URL,
+		PublishedAt: bookmark.UpdatedAt,
+	}
+
+	if err := h.templates.ExecuteTemplate(w, "published_bookmark_layout", bookmarkContent); err != nil {
+		log.Println("handlers.Bookmark error:", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
 

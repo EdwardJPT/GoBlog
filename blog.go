@@ -1,13 +1,15 @@
 package main
 
 import (
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
 	"blog/internal/database"
 	admin_handlers "blog/internal/handlers/admin"
 	handlers "blog/internal/handlers/public"
+	"blog/internal/logger"
+	"blog/internal/middlewares"
 	admin_middlewares "blog/internal/middlewares/admin"
 	"blog/internal/utils"
 
@@ -18,41 +20,50 @@ import (
 )
 
 func main() {
+	// Init the logger
+	logger.Init()
+
 	// Load the environment variable
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatalf("Failed to load .env file: %v\n", err)
+		slog.Error("Failed to load .env file, shutting down", "error", err)
+		os.Exit(1)
 	}
 
 	// Init the database connection
 	db, err := database.InitSQLite()
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v\n", err)
+		slog.Error("Failed to initialize database, shutting down", "error", err)
+		os.Exit(1)
 	}
 	defer db.Close()
-	log.Printf("Success connecting to the database\n")
-	log.Printf("Foreign Keys %d\n", database.CheckFK(db))
-	log.Printf("Journal Mode %s\n", database.CheckJournalMode(db))
-	log.Printf("  Cache Size %d\n", database.CheckCacheSize(db))
+	slog.Info("Success connecting to the database")
+	slog.Info("DB config info", "Foreign Keys", database.CheckFK(db))
+	slog.Info("DB config info", "Journal Mode", database.CheckJournalMode(db))
+	slog.Info("DB config info", "   Sync Mode", database.CheckSynchronous(db))
+	slog.Info("DB config info", "  Cache Size", database.CheckCacheSize(db))
 
 	// Run the migration
 	err = database.RunMigrations(db)
 	if err != nil {
-		log.Fatalf("DB Migration failed: %v\n", err)
+		slog.Error("DB Migration failed, shutting down", "error", err)
+		os.Exit(1)
 	}
-	log.Println("DB Migration success")
+	slog.Info("DB Migration success")
 
 	// Init the cache connection
 	dbRAM, err := database.InitSQLiteRAM()
 	if err != nil {
-		log.Fatalf("Failed to connect to RAM database: %v\n", err)
+		slog.Error("Failed to initialize RAM database, shutting down", "error", err)
+		os.Exit(1)
 	}
 	defer dbRAM.Close()
 
 	// Set up the jwt for auth
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
-		log.Fatal("JWT_SECRET environment variable is not set")
+		slog.Error("JWT_SECRET environment variable is not set, shutting down")
+		os.Exit(1)
 	}
 	jwt := jwtauth.New("HS256", []byte(jwtSecret), nil)
 	// Dummy hash
@@ -81,6 +92,7 @@ func main() {
 
 	// Embed middlewares
 	r.Use(middleware.RequestID)
+	r.Use(middlewares.ResponseRequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -155,6 +167,7 @@ func main() {
 				r.Get("/new", postsHandler.PostsForm)
 				r.Post("/", postsHandler.PostsCreate)
 				r.Get("/{id}/edit", postsHandler.PostsEdit)
+				r.Get("/{id}/preview", postsHandler.PostsPreview)
 				r.Post("/{id}", postsHandler.PostsUpdate)
 				r.Post("/{id}/delete", postsHandler.PostsDelete)
 			})
@@ -164,6 +177,7 @@ func main() {
 				r.Get("/new", bookmarksHandler.BookmarksForm)
 				r.Post("/", bookmarksHandler.BookmarksCreate)
 				r.Get("/{id}/edit", bookmarksHandler.BookmarksEdit)
+				r.Get("/{id}/preview", bookmarksHandler.BookmarksPreview)
 				r.Post("/{id}", bookmarksHandler.BookmarksUpdate)
 				r.Post("/{id}/delete", bookmarksHandler.BookmarksDelete)
 			})
@@ -174,6 +188,7 @@ func main() {
 				r.Get("/new", notesHandler.NotesForm)
 				r.Post("/", notesHandler.NotesCreate)
 				r.Get("/{id}/edit", notesHandler.NotesEdit)
+				r.Get("/{id}/preview", notesHandler.NotesPreview)
 				r.Post("/{id}", notesHandler.NotesUpdate)
 				r.Post("/{id}/delete", notesHandler.NotesDelete)
 			})
@@ -184,6 +199,7 @@ func main() {
 				r.Get("/new", projectsHandler.ProjectsForm)
 				r.Post("/", projectsHandler.ProjectsCreate)
 				r.Get("/{id}/edit", projectsHandler.ProjectsEdit)
+				r.Get("/{id}/preview", projectsHandler.ProjectsPreview)
 				r.Post("/{id}", projectsHandler.ProjectsUpdate)
 				r.Post("/{id}/delete", projectsHandler.ProjectsDelete)
 			})
@@ -194,6 +210,7 @@ func main() {
 				r.Get("/new", contributionsHandler.ContributionsForm)
 				r.Post("/", contributionsHandler.ContributionsCreate)
 				r.Get("/{id}/edit", contributionsHandler.ContributionsEdit)
+				r.Get("/{id}/preview", contributionsHandler.ContributionsPreview)
 				r.Post("/{id}", contributionsHandler.ContributionsUpdate)
 				r.Post("/{id}/delete", contributionsHandler.ContributionsDelete)
 			})
@@ -230,6 +247,10 @@ func main() {
 
 	// run the server
 	PORT := "4000"
-	log.Printf(" Server Port %s\n", PORT)
-	http.ListenAndServe(":"+PORT, r)
+	slog.Info("Server started", "port", PORT)
+	err = http.ListenAndServe(":"+PORT, r)
+	if err != nil && err != http.ErrServerClosed {
+		slog.Error("Server failed to start", "error", err)
+		os.Exit(1)
+	}
 }
