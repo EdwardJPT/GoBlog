@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
@@ -57,7 +57,7 @@ func (h *NotFoundHandler) NotFoundPage(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNotFound)
 	if err := h.templates.ExecuteTemplate(w, "404", data); err != nil {
-		log.Println("NotFoundPage error:", err)
+		slog.Error("Template handlers.NotFoundPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }

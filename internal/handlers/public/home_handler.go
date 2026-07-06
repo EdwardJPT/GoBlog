@@ -3,7 +3,7 @@ package handlers
 import (
 	"database/sql"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"slices"
 	"sort"
@@ -94,14 +94,14 @@ func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: move this to middleware
-	log.Println(r.Header.Get("Referer"))
+	slog.Info("Referer", "from:", r.Header.Get("Referer"))
 
 	// QUERY THE DATA FROM DATABASE
-	queryAmount := 8
+	queryAmount := utils.FeedSize
 
 	postsPublished, err := h.posts.GetRecentPublished(queryAmount)
 	if err != nil {
-		log.Printf("Error fetching recent posts: %v", err)
+		slog.Error("Failed fetching recent posts", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -117,7 +117,7 @@ func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 
 	bookmarksPublished, err := h.bookmarks.GetRecentPublished(queryAmount)
 	if err != nil {
-		log.Printf("Error fetching recent bookmarks: %v", err)
+		slog.Error("Failed fetching recent bookmarks", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -133,7 +133,7 @@ func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 
 	notesPublished, err := h.notes.GetRecentPublished(queryAmount)
 	if err != nil {
-		log.Printf("Error fetching recent notes: %v", err)
+		slog.Error("Failed fetching recent notes", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -149,7 +149,7 @@ func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 
 	projectsPublished, err := h.projects.GetRecentPublished(queryAmount)
 	if err != nil {
-		log.Printf("Error fetching recent project: %v", err)
+		slog.Error("Failed fetching recent projects", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -165,7 +165,7 @@ func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 
 	opensourcesPublished, err := h.contributions.GetRecentPublished(queryAmount)
 	if err != nil {
-		log.Printf("Error fetching recent open source: %v", err)
+		slog.Error("Failed fetching recent open source contributions", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -283,21 +283,21 @@ func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 
 	selectedWorks, err := h.selected.GetAllWorks()
 	if err != nil {
-		log.Printf("Error fetching selected works: %v", err)
+		slog.Error("Failed fetching selected works", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	techStacks, err := h.selected.GetAllTechStackLayouts()
 	if err != nil {
-		log.Printf("Error fetching tech stacks of selected works: %v", err)
+		slog.Error("Failed fetching tech stacks of selected works", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	selectedWritings, err := h.selected.GetAllWritings()
 	if err != nil {
-		log.Printf("Error fetching selected writings: %v", err)
+		slog.Error("Failed fetching selected writings", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -311,7 +311,7 @@ func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "index", data); err != nil {
-		log.Println("handlers.HomePage error:", err)
+		slog.Error("Template handlers.HomePage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }

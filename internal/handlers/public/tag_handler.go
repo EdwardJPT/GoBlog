@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -59,7 +59,7 @@ func (h *TagsHandler) TagsList(w http.ResponseWriter, r *http.Request) {
 	// Maybe one day we are going to implement the search result
 	tags, err := h.tags.GetAllTags("", selectedTypes)
 	if err != nil {
-		log.Printf("Error fetching tags list: %v", err)
+		slog.Error("Failed fetching tags list", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -67,7 +67,7 @@ func (h *TagsHandler) TagsList(w http.ResponseWriter, r *http.Request) {
 	data := TagsListData{Tags: tags}
 
 	if err = h.templates.ExecuteTemplate(w, "tags", data); err != nil {
-		log.Println("handlers.TagsList error:", err)
+		slog.Error("Template handlers.TagsList failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
@@ -100,7 +100,7 @@ func (h *TagsHandler) Tag(w http.ResponseWriter, r *http.Request) {
 
 	content, err := h.tags.GetContentByTag(tag, selectedTypes, cursor, isPrev, limit)
 	if err != nil {
-		log.Printf("Error fetching content by tag: %v", err)
+		slog.Error("Failed fetching contents by tag", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -124,6 +124,7 @@ func (h *TagsHandler) Tag(w http.ResponseWriter, r *http.Request) {
 			lastTimestamp,
 		)
 		if err != nil {
+			slog.Error("Failed fetching next and prev cursor of contents by tag", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -155,7 +156,7 @@ func (h *TagsHandler) Tag(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.templates.ExecuteTemplate(w, "tag", data); err != nil {
-		log.Println("handlers.Tag error:", err)
+		slog.Error("Template handlers.Tag failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }

@@ -3,9 +3,10 @@ package handlers
 import (
 	"database/sql"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -94,7 +95,7 @@ func (h *WritingsHandler) BlogPage(w http.ResponseWriter, r *http.Request) {
 
 	blogData, err := h.writings.GetBlogFeed(selectedTypes, cursor, isPrev, limit)
 	if err != nil {
-		log.Printf("Error fetching blog feed: %v", err)
+		slog.Error("Failed fetching blog feed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -118,6 +119,7 @@ func (h *WritingsHandler) BlogPage(w http.ResponseWriter, r *http.Request) {
 			lastTimestamp,
 		)
 		if err != nil {
+			slog.Error("Failed fetching next and prev cursor of blog", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -148,7 +150,7 @@ func (h *WritingsHandler) BlogPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "blog", data); err != nil {
-		log.Println("handlers.BlogPage error:", err)
+		slog.Error("Template handlers.BlogPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
@@ -180,8 +182,14 @@ func (h *WritingsHandler) Post(w http.ResponseWriter, r *http.Request) {
 
 	post, err := h.posts.GetBySlug(slug)
 	if err != nil {
-		redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+		if errors.Is(err, sql.ErrNoRows) {
+			slog.Error("Post not found error", "slug", slug)
+			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
+			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			return
+		}
+		slog.Error("Failed fetching post from database", "slug", slug, "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -193,7 +201,7 @@ func (h *WritingsHandler) Post(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_post_layout", postContent); err != nil {
-		log.Println("handlers.Post error:", err)
+		slog.Error("Template handlers.Post failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
@@ -203,8 +211,14 @@ func (h *WritingsHandler) Note(w http.ResponseWriter, r *http.Request) {
 
 	note, err := h.notes.GetBySlug(slug)
 	if err != nil {
-		redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+		if errors.Is(err, sql.ErrNoRows) {
+			slog.Error("Note not found error", "slug", slug)
+			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
+			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			return
+		}
+		slog.Error("Failed fetching note from database", "slug", slug, "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -216,7 +230,7 @@ func (h *WritingsHandler) Note(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_note_layout", noteContent); err != nil {
-		log.Println("handlers.Note error:", err)
+		slog.Error("Template handlers.Note failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
@@ -226,8 +240,14 @@ func (h *WritingsHandler) Bookmark(w http.ResponseWriter, r *http.Request) {
 
 	bookmark, err := h.bookmarks.GetBySlug(slug)
 	if err != nil {
-		redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+		if errors.Is(err, sql.ErrNoRows) {
+			slog.Error("Bookmark not found error", "slug", slug)
+			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
+			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			return
+		}
+		slog.Error("Failed fetching bookmark from database", "slug", slug, "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -240,7 +260,7 @@ func (h *WritingsHandler) Bookmark(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_bookmark_layout", bookmarkContent); err != nil {
-		log.Println("handlers.Bookmark error:", err)
+		slog.Error("Template handlers.Bookmark failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }

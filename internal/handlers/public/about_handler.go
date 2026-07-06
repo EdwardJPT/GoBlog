@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 )
 
@@ -19,7 +19,7 @@ func NewAboutHandler() *AboutHandler {
 
 func (h *AboutHandler) AboutPage(w http.ResponseWriter, r *http.Request) {
 	if err := h.templates.ExecuteTemplate(w, "about", nil); err != nil {
-		log.Println("handlers.AboutPage error:", err)
+		slog.Error("Template handlers.AboutPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }

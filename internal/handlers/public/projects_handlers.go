@@ -3,9 +3,10 @@ package handlers
 import (
 	"database/sql"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -82,7 +83,7 @@ func (h *WorksHandler) ProjectsPage(w http.ResponseWriter, r *http.Request) {
 
 	projectsData, err := h.works.GetProjectsFeed(selectedTypes, cursor, isPrev, limit)
 	if err != nil {
-		log.Printf("Error fetching projects feed: %v", err)
+		slog.Error("Failed fetching projects feed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -106,6 +107,7 @@ func (h *WorksHandler) ProjectsPage(w http.ResponseWriter, r *http.Request) {
 			lastTimestamp,
 		)
 		if err != nil {
+			slog.Error("Failed fetching next and prev cursor of projects", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -136,7 +138,7 @@ func (h *WorksHandler) ProjectsPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "projects", data); err != nil {
-		log.Println("handlers.ProjectPage error:", err)
+		slog.Error("Template handlers.ProjectsPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
@@ -165,8 +167,14 @@ func (h *WorksHandler) Project(w http.ResponseWriter, r *http.Request) {
 
 	project, err := h.projects.GetBySlug(slug)
 	if err != nil {
-		redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+		if errors.Is(err, sql.ErrNoRows) {
+			slog.Error("Project not found error", "slug", slug)
+			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
+			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			return
+		}
+		slog.Error("Failed fetching project from database", "slug", slug, "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -181,7 +189,7 @@ func (h *WorksHandler) Project(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_project_layout", projectContent); err != nil {
-		log.Println("handlers.Project error:", err)
+		slog.Error("Template handlers.Project failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
@@ -191,8 +199,14 @@ func (h *WorksHandler) OpenSourceContribution(w http.ResponseWriter, r *http.Req
 
 	contribution, err := h.contributions.GetBySlug(slug)
 	if err != nil {
-		redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-		http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+		if errors.Is(err, sql.ErrNoRows) {
+			slog.Error("Contribution not found error", "slug", slug)
+			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
+			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			return
+		}
+		slog.Error("Failed fetching contribution from database", "slug", slug, "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -206,7 +220,7 @@ func (h *WorksHandler) OpenSourceContribution(w http.ResponseWriter, r *http.Req
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_contribution_layout", contributionContent); err != nil {
-		log.Println("handlers.OpenSourceContribution error:", err)
+		slog.Error("Template handlers.OpenSourceContribution failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
