@@ -2,9 +2,8 @@ package admin_handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -52,15 +51,16 @@ func (h *NoteHandler) NotesList(w http.ResponseWriter, r *http.Request) {
 
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
 
 	notes, err := h.notes.GetAll(filter, status)
 	if err != nil {
-		log.Printf("Error fetching all notes: %v", err)
-		log.Printf("filter: %s - status: %s", filter, status)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed fetching all notes", "error", err)
+		slog.Error("Query parameters", "filter", filter, "status", status)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -74,7 +74,8 @@ func (h *NoteHandler) NotesList(w http.ResponseWriter, r *http.Request) {
 
 	err = h.templates.ExecuteTemplate(w, "notes-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.NotesList failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -88,9 +89,9 @@ func (h *NoteHandler) NotesListComponent(w http.ResponseWriter, r *http.Request)
 
 	notes, err := h.notes.GetAll(filter, "published")
 	if err != nil {
-		log.Printf("Error fetching all notes: %v", err)
-		log.Printf("filter: %s", filter)
-		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed fetching all notes", "error", err)
+		slog.Error("Query parameters", "filter", filter)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -98,7 +99,8 @@ func (h *NoteHandler) NotesListComponent(w http.ResponseWriter, r *http.Request)
 
 	err = h.templates.ExecuteTemplate(w, "notes-list-component", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.NotesListComponent failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -113,33 +115,47 @@ func (h *NoteHandler) NotesForm(w http.ResponseWriter, r *http.Request) {
 
 	err := h.templates.ExecuteTemplate(w, "notes-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.NotesForm failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
 func (h *NoteHandler) NotesCreate(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.NotesCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
+	title := r.FormValue("title")
+	content := r.FormValue("content")
+	tags := strings.ReplaceAll(r.FormValue("tags"), " ", "")
+	status := r.FormValue("status")
+	slug := r.FormValue("slug")
+
+	if slug == "" {
+		slug = models.GenerateSlug(title)
+	}
 	nanoId, err := gonanoid.New(10)
 	if err != nil {
+		slog.Error("Failed to generate nano ID", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	slug += "-" + nanoId
 
 	note := &models.Note{
-		Title:   r.FormValue("title"),
-		Slug:    models.GenerateSlug(r.FormValue("title")) + "-" + nanoId,
-		Content: r.FormValue("content"),
-		Tags:    strings.ReplaceAll(r.FormValue("tags"), " ", ""),
-		Status:  r.FormValue("status"),
+		Title:   title,
+		Slug:    slug,
+		Content: content,
+		Tags:    tags,
+		Status:  status,
 	}
 
 	if err := h.notes.Create(note); err != nil {
-		log.Printf("Error creating note: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed creating note", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -150,13 +166,14 @@ func (h *NoteHandler) NotesEdit(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.NotesEdit received invalid note ID")
 		http.Error(w, "Invalid note ID", http.StatusBadRequest)
 		return
 	}
 
 	note, err := h.notes.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching note by ID: %v", err)
+		slog.Error("Failed fetching note by ID", "error", err, "ID", id)
 		http.Error(w, "Note not found", http.StatusNotFound)
 		return
 	}
@@ -170,7 +187,8 @@ func (h *NoteHandler) NotesEdit(w http.ResponseWriter, r *http.Request) {
 
 	err = h.templates.ExecuteTemplate(w, "notes-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.NotesEdit failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -179,13 +197,14 @@ func (h *NoteHandler) NotesPreview(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.NotesPreview received invalid note ID")
 		http.Error(w, "Invalid note ID", http.StatusBadRequest)
 		return
 	}
 
 	note, err := h.notes.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching note by ID: %v", err)
+		slog.Error("Failed fetching note by ID", "error", err, "ID", id)
 		http.Error(w, "Note not found", http.StatusNotFound)
 		return
 	}
@@ -198,8 +217,9 @@ func (h *NoteHandler) NotesPreview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_note_layout", noteContent); err != nil {
-		log.Println("handlers.Note error:", err)
+		slog.Error("Template handlers.NotesPreview failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -207,18 +227,20 @@ func (h *NoteHandler) NotesUpdate(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.NotesUpdate received invalid note ID")
 		http.Error(w, "Invalid note ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.NotesUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
 	note, err := h.notes.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching note by ID: %v", err)
+		slog.Error("Failed fetching note by ID", "error", err, "ID", id)
 		http.Error(w, "Note not found", http.StatusNotFound)
 		return
 	}
@@ -227,10 +249,22 @@ func (h *NoteHandler) NotesUpdate(w http.ResponseWriter, r *http.Request) {
 	note.Content = r.FormValue("content")
 	note.Tags = strings.ReplaceAll(r.FormValue("tags"), " ", "")
 	note.Status = r.FormValue("status")
+	note.Slug = r.FormValue("slug")
+
+	if note.Slug == "" {
+		note.Slug = models.GenerateSlug(note.Title)
+		nanoId, err := gonanoid.New(10)
+		if err != nil {
+			slog.Error("Failed to generate nano ID", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		note.Slug += "-" + nanoId
+	}
 
 	if err := h.notes.Update(note); err != nil {
-		log.Printf("Error updating note: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed updating note", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -241,13 +275,14 @@ func (h *NoteHandler) NotesDelete(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.NotesDelete received invalid note ID")
 		http.Error(w, "Invalid note ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.notes.Delete(id); err != nil {
-		log.Printf("Error deleting note by ID: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed deleting note by ID", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 

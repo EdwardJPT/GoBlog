@@ -2,9 +2,8 @@ package admin_handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -52,15 +51,16 @@ func (h *PostHandler) PostsList(w http.ResponseWriter, r *http.Request) {
 
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
 
 	posts, err := h.posts.GetAll(filter, status)
 	if err != nil {
-		log.Printf("Error fetching all posts: %v", err)
-		log.Printf("filter: %s - status: %s", filter, status)
-		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed fetching all posts", "error", err)
+		slog.Error("Query parameters", "filter", filter, "status", status)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -74,7 +74,8 @@ func (h *PostHandler) PostsList(w http.ResponseWriter, r *http.Request) {
 
 	err = h.templates.ExecuteTemplate(w, "posts-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.PostsList failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -88,9 +89,9 @@ func (h *PostHandler) PostsListComponent(w http.ResponseWriter, r *http.Request)
 
 	posts, err := h.posts.GetAll(filter, "published")
 	if err != nil {
-		log.Printf("Error fetching all posts: %v", err)
-		log.Printf("filter: %s", filter)
-		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed fetching all posts", "error", err)
+		slog.Error("Query parameters", "filter", filter)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -98,14 +99,15 @@ func (h *PostHandler) PostsListComponent(w http.ResponseWriter, r *http.Request)
 
 	err = h.templates.ExecuteTemplate(w, "posts-list-component", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.PostsListComponent failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
 func (h *PostHandler) PostsForm(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
-		"Posts": &models.Post{
+		"Post": &models.Post{
 			Status: "draft",
 		},
 		"SectionType": "posts-form",
@@ -113,13 +115,15 @@ func (h *PostHandler) PostsForm(w http.ResponseWriter, r *http.Request) {
 
 	err := h.templates.ExecuteTemplate(w, "posts-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.PostsForm failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
 func (h *PostHandler) PostsCreate(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.PostsCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
@@ -135,6 +139,8 @@ func (h *PostHandler) PostsCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	nanoId, err := gonanoid.New(10)
 	if err != nil {
+		slog.Error("Failed to generate nano ID", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	slug += "-" + nanoId
@@ -148,8 +154,8 @@ func (h *PostHandler) PostsCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.posts.Create(post); err != nil {
-		log.Printf("Error creating post: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed creating post", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -160,13 +166,14 @@ func (h *PostHandler) PostsEdit(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.PostsEdit received invalid post ID")
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
 
 	post, err := h.posts.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching post by ID: %v", err)
+		slog.Error("Failed fetching post by ID", "error", err, "ID", id)
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
@@ -180,7 +187,8 @@ func (h *PostHandler) PostsEdit(w http.ResponseWriter, r *http.Request) {
 
 	err = h.templates.ExecuteTemplate(w, "posts-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.PostsEdit failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -189,13 +197,14 @@ func (h *PostHandler) PostsPreview(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.PostsPreview received invalid post ID")
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
 
 	post, err := h.posts.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching post by ID: %v", err)
+		slog.Error("Failed fetching post by ID", "error", err, "ID", id)
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
@@ -208,8 +217,9 @@ func (h *PostHandler) PostsPreview(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_post_layout", postContent); err != nil {
-		log.Println("handlers.Post error:", err)
+		slog.Error("Template handlers.PostsPreview failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -217,18 +227,20 @@ func (h *PostHandler) PostsUpdate(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.PostsUpdate received invalid post ID")
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.PostsUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
 	post, err := h.posts.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching post by ID: %v", err)
+		slog.Error("Failed fetching post by ID", "error", err, "ID", id)
 		http.Error(w, "Post not found", http.StatusNotFound)
 		return
 	}
@@ -241,11 +253,18 @@ func (h *PostHandler) PostsUpdate(w http.ResponseWriter, r *http.Request) {
 
 	if post.Slug == "" {
 		post.Slug = models.GenerateSlug(post.Title)
+		nanoId, err := gonanoid.New(10)
+		if err != nil {
+			slog.Error("Failed to generate nano ID", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		post.Slug += "-" + nanoId
 	}
 
 	if err := h.posts.Update(post); err != nil {
-		log.Printf("Error updating post: %v", err)
-		http.Error(w, "Post not found", http.StatusNotFound)
+		slog.Error("Failed updating post", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -256,13 +275,14 @@ func (h *PostHandler) PostsDelete(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.PostsDelete received invalid post ID")
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.posts.Delete(id); err != nil {
-		log.Printf("Error deleting post by ID: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed deleting post by ID", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 

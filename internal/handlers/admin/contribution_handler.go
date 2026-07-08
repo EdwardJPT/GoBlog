@@ -2,9 +2,8 @@ package admin_handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -37,7 +36,7 @@ func NewContributionsHandler(db *sql.DB) *ContributionsHandler {
 	}
 }
 
-type ContribtionsListData struct {
+type ContributionsListData struct {
 	*admin_services.StatsCardData
 	Contributions []*models.Contribution
 	Filter        string
@@ -49,19 +48,20 @@ func (h *ContributionsHandler) ContributionsList(w http.ResponseWriter, r *http.
 
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
 
 	contributions, err := h.contributions.GetAll(filter)
 	if err != nil {
-		log.Printf("Error fetching all contributions: %v", err)
-		log.Printf("filter: %s", filter)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed fetching all contributions", "error", err)
+		slog.Error("Query parameters", "filter", filter)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	data := ContribtionsListData{
+	data := ContributionsListData{
 		StatsCardData: statsData,
 		Contributions: contributions,
 		Filter:        filter,
@@ -70,7 +70,8 @@ func (h *ContributionsHandler) ContributionsList(w http.ResponseWriter, r *http.
 
 	err = h.templates.ExecuteTemplate(w, "opensource-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.ContributionsList failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -84,9 +85,9 @@ func (h *ContributionsHandler) ContributionsListComponent(w http.ResponseWriter,
 
 	contributions, err := h.contributions.GetAll(filter)
 	if err != nil {
-		log.Printf("Error fetching all contributions: %v", err)
-		log.Printf("filter: %s", filter)
-		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed fetching all contributions", "error", err)
+		slog.Error("Query parameters", "filter", filter)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -94,7 +95,8 @@ func (h *ContributionsHandler) ContributionsListComponent(w http.ResponseWriter,
 
 	err = h.templates.ExecuteTemplate(w, "os-contributions-list-component", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.ContributionsListComponent failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -107,35 +109,51 @@ func (h *ContributionsHandler) ContributionsForm(w http.ResponseWriter, r *http.
 
 	err := h.templates.ExecuteTemplate(w, "opensource-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.ContributionsForm failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
 func (h *ContributionsHandler) ContributionsCreate(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.ContributionsCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
+	projectName := r.FormValue("project_name")
+	description := r.FormValue("description")
+	homePageDescription := r.FormValue("home_page_description")
+	tags := strings.ReplaceAll(r.FormValue("tags"), " ", "")
+	link := r.FormValue("link")
+	contributionSummary := r.FormValue("contribution_summary")
+	slug := r.FormValue("slug")
+
+	if slug == "" {
+		slug = models.GenerateSlug(projectName)
+	}
 	nanoId, err := gonanoid.New(10)
 	if err != nil {
+		slog.Error("Failed to generate nano ID", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	slug += "-" + nanoId
 
 	contribution := &models.Contribution{
-		ProjectName:         r.FormValue("project_name"),
-		Slug:                models.GenerateSlug(r.FormValue("project_name")) + "-" + nanoId,
-		Description:         r.FormValue("description"),
-		HomePageDescription: r.FormValue("home_page_description"),
-		Tags:                strings.ReplaceAll(r.FormValue("tags"), " ", ""),
-		Link:                r.FormValue("link"),
-		ContributionSummary: r.FormValue("contribution_summary"),
+		ProjectName:         projectName,
+		Slug:                slug,
+		Description:         description,
+		HomePageDescription: homePageDescription,
+		Tags:                tags,
+		Link:                link,
+		ContributionSummary: contributionSummary,
 	}
 
 	if err := h.contributions.Create(contribution); err != nil {
-		log.Printf("Error creating contribution: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed creating contribution", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -146,13 +164,14 @@ func (h *ContributionsHandler) ContributionsEdit(w http.ResponseWriter, r *http.
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.ContributionsEdit received invalid contribution ID")
 		http.Error(w, "Invalid contribution ID", http.StatusBadRequest)
 		return
 	}
 
 	contribution, err := h.contributions.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching contribution by ID: %v", err)
+		slog.Error("Failed fetching contribution by ID", "error", err, "ID", id)
 		http.Error(w, "Contribution not found", http.StatusNotFound)
 		return
 	}
@@ -166,7 +185,8 @@ func (h *ContributionsHandler) ContributionsEdit(w http.ResponseWriter, r *http.
 
 	err = h.templates.ExecuteTemplate(w, "opensource-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.ContributionsEdit failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -175,13 +195,14 @@ func (h *ContributionsHandler) ContributionsPreview(w http.ResponseWriter, r *ht
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.ContributionsPreview received invalid contribution ID")
 		http.Error(w, "Invalid contribution ID", http.StatusBadRequest)
 		return
 	}
 
 	contribution, err := h.contributions.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching contribution by ID: %v", err)
+		slog.Error("Failed fetching contribution by ID", "error", err, "ID", id)
 		http.Error(w, "Contribution not found", http.StatusNotFound)
 		return
 	}
@@ -196,8 +217,9 @@ func (h *ContributionsHandler) ContributionsPreview(w http.ResponseWriter, r *ht
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_contribution_layout", contributionContent); err != nil {
-		log.Println("handlers.OpenSourceContribution error:", err)
+		slog.Error("Template handlers.ContributionsPreview failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -205,18 +227,20 @@ func (h *ContributionsHandler) ContributionsUpdate(w http.ResponseWriter, r *htt
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.ContributionsUpdate received invalid contribution ID")
 		http.Error(w, "Invalid contribution ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.ContributionsUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
 	contribution, err := h.contributions.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching contribution by ID: %v", err)
+		slog.Error("Failed fetching contribution by ID", "error", err, "ID", id)
 		http.Error(w, "Contribution not found", http.StatusNotFound)
 		return
 	}
@@ -227,10 +251,22 @@ func (h *ContributionsHandler) ContributionsUpdate(w http.ResponseWriter, r *htt
 	contribution.Tags = strings.ReplaceAll(r.FormValue("tags"), " ", "")
 	contribution.Link = r.FormValue("link")
 	contribution.ContributionSummary = r.FormValue("contribution_summary")
+	contribution.Slug = r.FormValue("slug")
+
+	if contribution.Slug == "" {
+		contribution.Slug = models.GenerateSlug(contribution.ProjectName)
+		nanoId, err := gonanoid.New(10)
+		if err != nil {
+			slog.Error("Failed to generate nano ID", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		contribution.Slug += "-" + nanoId
+	}
 
 	if err := h.contributions.Update(contribution); err != nil {
-		log.Printf("Error updating contribution: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed updating contribution", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -241,13 +277,14 @@ func (h *ContributionsHandler) ContributionsDelete(w http.ResponseWriter, r *htt
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.ContributionsDelete received invalid contribution ID")
 		http.Error(w, "Invalid contribution ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.contributions.Delete(id); err != nil {
-		log.Printf("Error deleting contribution by ID: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed deleting contribution by ID", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 

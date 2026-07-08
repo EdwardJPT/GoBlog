@@ -2,9 +2,8 @@ package admin_handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -52,15 +51,16 @@ func (h *ProjectHandler) ProjectsList(w http.ResponseWriter, r *http.Request) {
 
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
 
 	projects, err := h.projects.GetAll(filter, status)
 	if err != nil {
-		log.Printf("Error fetching all projects: %v", err)
-		log.Printf("filter: %s - status: %s", filter, status)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed fetching all projects", "error", err)
+		slog.Error("Query parameters", "filter", filter, "status", status)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -74,7 +74,8 @@ func (h *ProjectHandler) ProjectsList(w http.ResponseWriter, r *http.Request) {
 
 	err = h.templates.ExecuteTemplate(w, "projects-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.ProjectsList failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -88,9 +89,9 @@ func (h *ProjectHandler) ProjectsListComponent(w http.ResponseWriter, r *http.Re
 
 	projects, err := h.projects.GetAll(filter, "published")
 	if err != nil {
-		log.Printf("Error fetching all projects: %v", err)
-		log.Printf("filter: %s", filter)
-		http.Error(w, fmt.Sprintf("Database error: %v", err), http.StatusInternalServerError)
+		slog.Error("Failed fetching all projects", "error", err)
+		slog.Error("Query parameters", "filter", filter)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -98,7 +99,8 @@ func (h *ProjectHandler) ProjectsListComponent(w http.ResponseWriter, r *http.Re
 
 	err = h.templates.ExecuteTemplate(w, "projects-list-component", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.ProjectsListComponent failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -113,37 +115,55 @@ func (h *ProjectHandler) ProjectsForm(w http.ResponseWriter, r *http.Request) {
 
 	err := h.templates.ExecuteTemplate(w, "projects-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.ProjectsForm failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
 func (h *ProjectHandler) ProjectsCreate(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.ProjectsCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
+	name := r.FormValue("name")
+	description := r.FormValue("description")
+	homePageDescription := r.FormValue("home_page_description")
+	repoLink := r.FormValue("repo_link")
+	demoLink := r.FormValue("demo_link")
+	otherLinks := r.FormValue("other_links")
+	tags := strings.ReplaceAll(r.FormValue("tags"), " ", "")
+	status := r.FormValue("status")
+	slug := r.FormValue("slug")
+
+	if slug == "" {
+		slug = models.GenerateSlug(name)
+	}
 	nanoId, err := gonanoid.New(10)
 	if err != nil {
+		slog.Error("Failed to generate nano ID", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	slug += "-" + nanoId
 
 	project := &models.Project{
-		Name:                r.FormValue("name"),
-		Slug:                models.GenerateSlug(r.FormValue("name")) + "-" + nanoId,
-		Description:         r.FormValue("description"),
-		HomePageDescription: r.FormValue("home_page_description"),
-		RepoLink:            r.FormValue("repo_link"),
-		DemoLink:            r.FormValue("demo_link"),
-		OtherLinks:          r.FormValue("other_links"),
-		Tags:                strings.ReplaceAll(r.FormValue("tags"), " ", ""),
-		Status:              r.FormValue("status"),
+		Name:                name,
+		Slug:                slug,
+		Description:         description,
+		HomePageDescription: homePageDescription,
+		RepoLink:            repoLink,
+		DemoLink:            demoLink,
+		OtherLinks:          otherLinks,
+		Tags:                tags,
+		Status:              status,
 	}
 
 	if err := h.projects.Create(project); err != nil {
-		log.Printf("Error creating project: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed creating project", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -154,13 +174,14 @@ func (h *ProjectHandler) ProjectsEdit(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid note ID", http.StatusBadRequest)
+		slog.Warn("handlers.ProjectsEdit received invalid project ID")
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
 	project, err := h.projects.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching project by ID: %v", err)
+		slog.Error("Failed fetching project by ID", "error", err, "ID", id)
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
@@ -174,7 +195,8 @@ func (h *ProjectHandler) ProjectsEdit(w http.ResponseWriter, r *http.Request) {
 
 	err = h.templates.ExecuteTemplate(w, "projects-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.ProjectsEdit failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -183,13 +205,14 @@ func (h *ProjectHandler) ProjectsPreview(w http.ResponseWriter, r *http.Request)
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid note ID", http.StatusBadRequest)
+		slog.Warn("handlers.ProjectsPreview received invalid project ID")
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
 	project, err := h.projects.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching project by ID: %v", err)
+		slog.Error("Failed fetching project by ID", "error", err, "ID", id)
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
@@ -205,8 +228,9 @@ func (h *ProjectHandler) ProjectsPreview(w http.ResponseWriter, r *http.Request)
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_project_layout", projectContent); err != nil {
-		log.Println("handlers.Project error:", err)
+		slog.Error("Template handlers.ProjectsPreview failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -214,18 +238,20 @@ func (h *ProjectHandler) ProjectsUpdate(w http.ResponseWriter, r *http.Request) 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		http.Error(w, "Invalid note ID", http.StatusBadRequest)
+		slog.Warn("handlers.ProjectsUpdate received invalid project ID")
+		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.ProjectsUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
 	project, err := h.projects.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching project by ID: %v", err)
+		slog.Error("Failed fetching project by ID", "error", err, "ID", id)
 		http.Error(w, "Project not found", http.StatusNotFound)
 		return
 	}
@@ -238,10 +264,22 @@ func (h *ProjectHandler) ProjectsUpdate(w http.ResponseWriter, r *http.Request) 
 	project.OtherLinks = r.FormValue("other_links")
 	project.Tags = strings.ReplaceAll(r.FormValue("tags"), " ", "")
 	project.Status = r.FormValue("status")
+	project.Slug = r.FormValue("slug")
+
+	if project.Slug == "" {
+		project.Slug = models.GenerateSlug(project.Name)
+		nanoId, err := gonanoid.New(10)
+		if err != nil {
+			slog.Error("Failed to generate nano ID", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		project.Slug += "-" + nanoId
+	}
 
 	if err := h.projects.Update(project); err != nil {
-		log.Printf("Error updating project: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed updating project", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -252,13 +290,14 @@ func (h *ProjectHandler) ProjectsDelete(w http.ResponseWriter, r *http.Request) 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.ProjectsDelete received invalid project ID")
 		http.Error(w, "Invalid project ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.projects.Delete(id); err != nil {
-		log.Printf("Error deleting project by ID: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed deleting project by ID", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 

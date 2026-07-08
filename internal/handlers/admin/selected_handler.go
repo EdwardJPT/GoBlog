@@ -3,9 +3,8 @@ package admin_handlers
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -45,15 +44,15 @@ type WritingsListData struct {
 func (h *SelectedHandler) WritingsList(w http.ResponseWriter, r *http.Request) {
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
-		log.Println(err.Error())
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
 
 	selectedWritings, err := h.selected.GetAllWritings()
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed fetching all selected writings", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -64,8 +63,8 @@ func (h *SelectedHandler) WritingsList(w http.ResponseWriter, r *http.Request) {
 
 	err = h.templates.ExecuteTemplate(w, "writings-layout", data)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.WritingsList failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -74,7 +73,7 @@ func (h *SelectedHandler) AddWritings(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		log.Println(err.Error())
+		slog.Warn("handlers.AddWritings received invalid post ID", "error", err)
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
 		return
 	}
@@ -83,8 +82,9 @@ func (h *SelectedHandler) AddWritings(w http.ResponseWriter, r *http.Request) {
 
 	err = h.selected.InsertWriting(writingsType, id)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "Failed to insert selected writings", http.StatusInternalServerError)
+		slog.Error("Failed to insert selected writings", "error", err, "ID", id, "type", writingsType)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 
 	http.Redirect(w, r, "/nimda/selected-writings", http.StatusFound)
@@ -99,22 +99,22 @@ type WorksListData struct {
 func (h *SelectedHandler) WorksList(w http.ResponseWriter, r *http.Request) {
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
-		log.Println(err.Error())
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
 
 	selectedWorks, err := h.selected.GetAllWorks()
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed fetching all selected works", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
 	techStacks, err := h.selected.GetAllTechStackLayouts()
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "Failed to load tech stacks", http.StatusInternalServerError)
+		slog.Error("Failed to load tech stacks", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -126,8 +126,8 @@ func (h *SelectedHandler) WorksList(w http.ResponseWriter, r *http.Request) {
 
 	err = h.templates.ExecuteTemplate(w, "works-layout", data)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.WorksList failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -136,7 +136,7 @@ func (h *SelectedHandler) AddWorks(w http.ResponseWriter, r *http.Request) {
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		log.Println(err.Error())
+		slog.Warn("handlers.AddWorks received invalid work ID", "error", err)
 		http.Error(w, "Invalid work ID", http.StatusBadRequest)
 		return
 	}
@@ -145,8 +145,8 @@ func (h *SelectedHandler) AddWorks(w http.ResponseWriter, r *http.Request) {
 
 	err = h.selected.InsertWork(worksType, id)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "Failed to insert selected work", http.StatusInternalServerError)
+		slog.Error("Failed to insert selected work", "error", err, "ID", id, "type", worksType)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -164,23 +164,23 @@ func (h *SelectedHandler) UpsertTechStack(w http.ResponseWriter, r *http.Request
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
-		log.Println(err.Error())
+		slog.Warn("handlers.UpsertTechStack received invalid JSON payload", "error", err)
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
 
 	skillsJSONBytes, err := json.Marshal(payload.SkillsLayout)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "Failed to process skills layout", http.StatusInternalServerError)
+		slog.Error("Failed to process skills layout", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 	skillsJSONString := string(skillsJSONBytes)
 
 	err = h.selected.UpsertTechStackLayout(payload.WorkID, skillsJSONString)
 	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, "Failed to save tech stack", http.StatusInternalServerError)
+		slog.Error("Failed to save tech stack", "error", err, "work_id", payload.WorkID)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 

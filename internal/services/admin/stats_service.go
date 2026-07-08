@@ -1,9 +1,10 @@
 package admin_services
 
 import (
-	"blog/internal/models"
 	"database/sql"
-	"log"
+	"log/slog"
+
+	"blog/internal/models"
 )
 
 type StatsService struct {
@@ -53,32 +54,32 @@ func (s *StatsService) FetchStatsData() (*StatsCardData, error) {
 
 	postStats, err := s.posts.GetStats()
 	if err != nil {
-		log.Printf("Error fetching post stats: %v", err)
-		return &StatsCardData{}, err
+		slog.Error("Failed fetching post stats", "error", err)
+		return nil, err
 	}
 
 	bookmarkStats, err := s.bookmarks.GetStats()
 	if err != nil {
-		log.Printf("Error fetching bookmark stats: %v", err)
-		return &StatsCardData{}, err
+		slog.Error("Failed fetching bookmark stats", "error", err)
+		return nil, err
 	}
 
 	noteStats, err := s.notes.GetStats()
 	if err != nil {
-		log.Printf("Error fetching note stats: %v", err)
-		return &StatsCardData{}, err
+		slog.Error("Failed fetching note stats", "error", err)
+		return nil, err
 	}
 
 	projectStats, err := s.projects.GetStats()
 	if err != nil {
-		log.Printf("Error fetching project stats: %v", err)
-		return &StatsCardData{}, err
+		slog.Error("Failed fetching project stats", "error", err)
+		return nil, err
 	}
 
 	opensourceStats, err := s.contributions.GetStats()
 	if err != nil {
-		log.Printf("Error fetching open source stats: %v", err)
-		return &StatsCardData{}, err
+		slog.Error("Failed fetching open source stats", "error", err)
+		return nil, err
 	}
 
 	data.PostCount = postStats.TotalCount

@@ -2,7 +2,8 @@ package models
 
 import (
 	"database/sql"
-	"log"
+	"log/slog"
+	"os"
 	"time"
 )
 
@@ -40,7 +41,8 @@ func NewAdminRepository(db *sql.DB, dbRAM *sql.DB) *AdminRepository {
 	// Kinda ugly but whatever
 	_, err := dbRAM.Exec(rateLimitInitSQL)
 	if err != nil {
-		log.Fatalln("Failed to initialize RAM tables:", err)
+		slog.Error("Failed to initialize DB RAM tables", "error", err)
+		os.Exit(1)
 		return nil
 	}
 	return &AdminRepository{db: db, dbRAM: dbRAM}
@@ -105,7 +107,7 @@ func (r *AdminRepository) RecordFailure(ip string) {
 
 	tx, err := r.dbRAM.Begin()
 	if err != nil {
-		log.Println("DB error:", err)
+		slog.Error("Failed to start transaction in DB RAM", "error", err)
 		return
 	}
 	defer tx.Rollback()
@@ -123,7 +125,7 @@ func (r *AdminRepository) RecordFailure(ip string) {
 
 	// Lock down the IP if it exceeds the limit
 	if count >= MaxFailedAttempts {
-		log.Printf("IP %s locked out for suspicious activity.\n", ip)
+		slog.Warn("IP locked out for suspicious activity", "IP", ip)
 		query = `REPLACE INTO ip_blocks (ip, blocked_until) VALUES (?, ?)`
 		tx.Exec(query, ip, now.Add(LockoutDuration))
 	}

@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -59,38 +59,42 @@ func NewAdminHandler(
 type AuthResponse struct{ Message string }
 
 func (h *AdminHandler) AdminPage(w http.ResponseWriter, r *http.Request) {
-	log.Println("=== LoginPage handler called ===")
+	slog.Info("=== LoginPage handler called ===")
 	id := r.Context().Value(admin_middlewares.IdKey).(admin_middlewares.RequestId)
-	log.Println("IP		:", id.IP)
-	log.Println("User-Agent	:", id.UserAgent)
+	slog.Info("Admin Info", "IP", id.IP, "User-Agent", id.UserAgent)
 
 	if h.auth.IsBlocked(id.IP) {
-		log.Println("Access Denied: IP Temporarily Locked")
+		slog.Error("Access Denied: IP Temporarily Locked", "IP", id.IP)
 		http.Error(w, "Access Denied: IP Temporarily Locked", http.StatusTooManyRequests)
 		return
 	}
 
 	err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{Message: ""})
 	if err != nil {
-		log.Println(err.Error())
+		slog.Error("Template handlers.AdminPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
 func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
-	log.Println("=== Admin trying to Sign In ===")
+	slog.Info("=== Admin trying to Sign In ===")
 	id := r.Context().Value(admin_middlewares.IdKey).(admin_middlewares.RequestId)
-	log.Println("IP		:", id.IP)
-	log.Println("User-Agent	:", id.UserAgent)
+	slog.Info("Admin Info", "IP", id.IP, "User-Agent", id.UserAgent)
 
 	if h.auth.IsBlocked(id.IP) {
-		log.Println("Access Denied: IP Temporarily Locked")
+		slog.Error("Access Denied: IP Temporarily Locked", "IP", id.IP)
 		http.Error(w, "Access Denied: IP Temporarily Locked", http.StatusTooManyRequests)
 		return
 	}
 
 	// Parse form data
-	r.ParseForm()
+	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.SignIn received invalid form data", "error", err)
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
 	// Construct the form data into a struct
 	formData := models.SignInData{
 		Username: strings.ToLower(r.FormValue("username")),
@@ -101,8 +105,7 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	// Check if username valid
 	admin, err := h.auth.GetByUsername(formData.Username)
 	if err != nil {
-		log.Println("Query admin username error:", err)
-		log.Println("admin username:", formData.Username)
+		slog.Error("Failed query admin username", "error", err, "username", formData.Username)
 
 		h.auth.RecordFailure(id.IP)
 
@@ -112,9 +115,10 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 		// would take 100ms
 		bcrypt.CompareHashAndPassword(h.dummyHash, []byte(formData.Password))
 
-		err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{Message: "Invalid credentials"})
-		if err != nil {
-			log.Println(err.Error())
+		if err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{
+			Message: "Invalid credentials",
+		}); err != nil {
+			slog.Error("Template handlers.SignIn failed", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 		return
@@ -123,13 +127,14 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 	// Check the password
 	err = bcrypt.CompareHashAndPassword([]byte(admin.Password), []byte(formData.Password))
 	if err != nil {
-		log.Println("Bcrypt compare error:", err)
+		slog.Error("Bcrypt compare failed", "error", err)
 
 		h.auth.RecordFailure(id.IP)
 
-		err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{Message: "Invalid credentials"})
-		if err != nil {
-			log.Println(err.Error())
+		if err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{
+			Message: "Invalid credentials",
+		}); err != nil {
+			slog.Error("Template handlers.SignIn failed", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 		return
@@ -153,10 +158,11 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	_, tokenString, err := h.jwt.Encode(claims)
 	if err != nil {
-		log.Println("JWT encode error:", err)
-		err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{Message: "Invalid credentials"})
-		if err != nil {
-			log.Println(err.Error())
+		slog.Error("Failed encoding JWT", "error", err)
+		if err := h.templates.ExecuteTemplate(w, "admin_login", AuthResponse{
+			Message: "Invalid credentials",
+		}); err != nil {
+			slog.Error("Template handlers.SignIn failed", "error", err)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		}
 		return
@@ -164,7 +170,7 @@ func (h *AdminHandler) SignIn(w http.ResponseWriter, r *http.Request) {
 
 	// Update the last login in database
 	if err = h.auth.UpdateLastLogin(admin.ID); err != nil {
-		log.Println("Update last login error:", admin.ID, err)
+		slog.Error("Failed Update last login", "error", err, "ID", admin.ID)
 	}
 
 	// Set the cookie to the user and redirect
@@ -183,13 +189,13 @@ type DashboardData struct {
 }
 
 func (h *AdminHandler) DashboardPage(w http.ResponseWriter, r *http.Request) {
-	log.Println("=== DashboardPage handler called ===")
+	slog.Info("=== DashboardPage handler called ===")
 	id := r.Context().Value(admin_middlewares.IdKey).(admin_middlewares.RequestId)
-	log.Println("IP		:", id.IP)
-	log.Println("User-Agent	:", id.UserAgent)
+	slog.Info("Admin Info", "IP", id.IP, "User-Agent", id.UserAgent)
 
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
@@ -198,35 +204,35 @@ func (h *AdminHandler) DashboardPage(w http.ResponseWriter, r *http.Request) {
 
 	postRecent, err := h.posts.GetRecent(recentAmount)
 	if err != nil {
-		log.Printf("Error fetching recent posts: %v", err)
+		slog.Error("Failed fetching recent posts", "error", err)
 		http.Error(w, "Failed to load recent posts", http.StatusInternalServerError)
 		return
 	}
 
 	bookmarkRecent, err := h.bookmarks.GetRecent(recentAmount)
 	if err != nil {
-		log.Printf("Error fetching recent bookmarks: %v", err)
+		slog.Error("Failed fetching recent bookmarks", "error", err)
 		http.Error(w, "Failed to load recent bookmarks", http.StatusInternalServerError)
 		return
 	}
 
 	noteRecent, err := h.notes.GetRecent(recentAmount)
 	if err != nil {
-		log.Printf("Error fetching recent notes: %v", err)
+		slog.Error("Failed fetching recent notes", "error", err)
 		http.Error(w, "Failed to load recent notes", http.StatusInternalServerError)
 		return
 	}
 
 	projectRecent, err := h.projects.GetRecent(recentAmount)
 	if err != nil {
-		log.Printf("Error fetching recent project: %v", err)
+		slog.Error("Failed fetching recent projects", "error", err)
 		http.Error(w, "Failed to load recent project", http.StatusInternalServerError)
 		return
 	}
 
 	opensourceRecent, err := h.contributions.GetRecent(recentAmount)
 	if err != nil {
-		log.Printf("Error fetching recent open source: %v", err)
+		slog.Error("Failed fetching recent open source contributions", "error", err)
 		http.Error(w, "Failed to load recent open source", http.StatusInternalServerError)
 		return
 	}
@@ -250,7 +256,8 @@ func (h *AdminHandler) DashboardPage(w http.ResponseWriter, r *http.Request) {
 
 	err = h.templates.ExecuteTemplate(w, "admin_dashboard_overview", data)
 	if err != nil {
-		log.Println(err.Error())
+		slog.Error("Template handlers.DashboardPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }

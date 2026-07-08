@@ -3,7 +3,7 @@ package utils
 import (
 	"bytes"
 	"html/template"
-	"log"
+	"log/slog"
 
 	"github.com/yuin/goldmark"
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
@@ -39,7 +39,7 @@ func RenderMarkdown(raw string) template.HTML {
 
 	var buf bytes.Buffer
 	if err := md.Convert([]byte(raw), &buf); err != nil {
-		log.Printf("Error: %v", err)
+		slog.Error("Failed converting markdown to a rendered content", "error", err)
 		return ""
 	}
 	return template.HTML(buf.String())

@@ -3,7 +3,7 @@ package admin_handlers
 import (
 	"database/sql"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -47,18 +47,23 @@ type TagEditData struct {
 func (h *TagsHandler) TagsList(w http.ResponseWriter, r *http.Request) {
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
-		log.Println(err.Error())
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
 
 	filter := r.URL.Query().Get("q")
-	r.ParseForm()
+
+	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.TagsList received invalid form data")
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
 	selectedTypes := r.Form["type"]
 
 	tags, err := h.tags.GetAllTags(filter, selectedTypes)
 	if err != nil {
-		log.Printf("Error fetching tags list: %v", err)
+		slog.Error("Failed fetching tags list", "error", err, "filter", filter, "selectedTypes", selectedTypes)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
@@ -75,7 +80,7 @@ func (h *TagsHandler) TagsList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err = h.templates.ExecuteTemplate(w, "tags-layout", data); err != nil {
-		log.Println("handlers.TagsList error:", err)
+		slog.Error("Template handlers.TagsList failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
@@ -83,13 +88,14 @@ func (h *TagsHandler) TagsList(w http.ResponseWriter, r *http.Request) {
 func (h *TagsHandler) EditTagPage(w http.ResponseWriter, r *http.Request) {
 	name := chi.URLParam(r, "name")
 	if name == "" {
+		slog.Warn("handlers.EditTagPage received empty tag name")
 		http.Redirect(w, r, "/nimda/tags", http.StatusSeeOther)
 		return
 	}
 
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
-		log.Println(err.Error())
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
@@ -101,7 +107,7 @@ func (h *TagsHandler) EditTagPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "tags-layout", data); err != nil {
-		log.Println("handlers.EditTagPage error:", err)
+		slog.Error("Template handlers.EditTagPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	}
 }
@@ -110,7 +116,8 @@ func (h *TagsHandler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 	oldName := chi.URLParam(r, "name")
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
+		slog.Warn("handlers.UpdateTag received invalid form data")
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
@@ -119,7 +126,7 @@ func (h *TagsHandler) UpdateTag(w http.ResponseWriter, r *http.Request) {
 	if newName != "" && oldName != newName {
 		err := h.tags.RenameTag(oldName, newName)
 		if err != nil {
-			log.Printf("Error updating tag %s to %s: %v", oldName, newName, err)
+			slog.Error("Failed updating tag", "error", err, "old_name", oldName, "new_name", newName)
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
@@ -133,7 +140,7 @@ func (h *TagsHandler) DeleteTag(w http.ResponseWriter, r *http.Request) {
 
 	err := h.tags.DeleteTag(name)
 	if err != nil {
-		log.Printf("Error deleting tag %s: %v", name, err)
+		slog.Error("Failed deleting tag", "error", err, "name", name)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

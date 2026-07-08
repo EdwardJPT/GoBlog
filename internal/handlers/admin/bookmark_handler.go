@@ -2,9 +2,8 @@ package admin_handlers
 
 import (
 	"database/sql"
-	"fmt"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -52,15 +51,16 @@ func (h *BookmarkHandler) BookmarksList(w http.ResponseWriter, r *http.Request) 
 
 	statsData, err := h.stats.FetchStatsData()
 	if err != nil {
+		slog.Error("Failed to load dashboard data", "error", err)
 		http.Error(w, "Failed to load dashboard data", http.StatusInternalServerError)
 		return
 	}
 
 	bookmarks, err := h.bookmarks.GetAll(filter, status)
 	if err != nil {
-		log.Printf("Error fetching all bookmarks: %v", err)
-		log.Printf("filter: %s - status: %s", filter, status)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed fetching all bookmarks", "error", err)
+		slog.Error("Query parameters", "filter", filter, "status", status)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -74,7 +74,8 @@ func (h *BookmarkHandler) BookmarksList(w http.ResponseWriter, r *http.Request) 
 
 	err = h.templates.ExecuteTemplate(w, "bookmarks-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.BookmarksList failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -89,34 +90,49 @@ func (h *BookmarkHandler) BookmarksForm(w http.ResponseWriter, r *http.Request) 
 
 	err := h.templates.ExecuteTemplate(w, "bookmarks-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.BookmarksForm failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
 
 func (h *BookmarkHandler) BookmarksCreate(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.BookmarksCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
+	title := r.FormValue("title")
+	url := r.FormValue("url")
+	description := r.FormValue("description")
+	tags := strings.ReplaceAll(r.FormValue("tags"), " ", "")
+	status := r.FormValue("status")
+	slug := r.FormValue("slug")
+
+	if slug == "" {
+		slug = models.GenerateSlug(title)
+	}
 	nanoId, err := gonanoid.New(10)
 	if err != nil {
+		slog.Error("Failed to generate nano ID", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
+	slug += "-" + nanoId
 
 	bookmark := &models.Bookmark{
-		Title:       r.FormValue("title"),
-		Slug:        models.GenerateSlug(r.FormValue("title")) + "-" + nanoId,
-		URL:         r.FormValue("url"),
-		Description: r.FormValue("description"),
-		Tags:        strings.ReplaceAll(r.FormValue("tags"), " ", ""),
-		Status:      r.FormValue("status"),
+		Title:       title,
+		Slug:        slug,
+		URL:         url,
+		Description: description,
+		Tags:        tags,
+		Status:      status,
 	}
 
 	if err := h.bookmarks.Create(bookmark); err != nil {
-		log.Printf("Error creating bookmark: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed creating bookmark", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -127,13 +143,14 @@ func (h *BookmarkHandler) BookmarksEdit(w http.ResponseWriter, r *http.Request) 
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.BookmarksEdit received invalid bookmark ID")
 		http.Error(w, "Invalid bookmark ID", http.StatusBadRequest)
 		return
 	}
 
 	bookmark, err := h.bookmarks.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching bookmark by ID: %v", err)
+		slog.Error("Failed fetching bookmark by ID", "error", err, "ID", id)
 		http.Error(w, "Bookmark not found", http.StatusNotFound)
 		return
 	}
@@ -147,7 +164,8 @@ func (h *BookmarkHandler) BookmarksEdit(w http.ResponseWriter, r *http.Request) 
 
 	err = h.templates.ExecuteTemplate(w, "bookmarks-layout", data)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Render error: %v", err), http.StatusInternalServerError)
+		slog.Error("Template handlers.BookmarksEdit failed", "error", err)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 }
@@ -156,13 +174,14 @@ func (h *BookmarkHandler) BookmarksPreview(w http.ResponseWriter, r *http.Reques
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.BookmarksPreview received invalid bookmark ID")
 		http.Error(w, "Invalid bookmark ID", http.StatusBadRequest)
 		return
 	}
 
 	bookmark, err := h.bookmarks.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching bookmark by ID: %v", err)
+		slog.Error("Failed fetching bookmark by ID", "error", err, "ID", id)
 		http.Error(w, "Bookmark not found", http.StatusNotFound)
 		return
 	}
@@ -176,8 +195,9 @@ func (h *BookmarkHandler) BookmarksPreview(w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := h.templates.ExecuteTemplate(w, "published_bookmark_layout", bookmarkContent); err != nil {
-		log.Println("handlers.Bookmark error:", err)
+		slog.Error("Template handlers.BookmarksPreview failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -185,18 +205,20 @@ func (h *BookmarkHandler) BookmarksUpdate(w http.ResponseWriter, r *http.Request
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.BookmarksUpdate received invalid bookmark ID")
 		http.Error(w, "Invalid bookmark ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
+		slog.Warn("handlers.BookmarksUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
 	}
 
 	bookmark, err := h.bookmarks.GetByID(id)
 	if err != nil {
-		log.Printf("Error fetching bookmark by ID: %v", err)
+		slog.Error("Failed fetching bookmark by ID", "error", err, "ID", id)
 		http.Error(w, "Bookmark not found", http.StatusNotFound)
 		return
 	}
@@ -206,10 +228,22 @@ func (h *BookmarkHandler) BookmarksUpdate(w http.ResponseWriter, r *http.Request
 	bookmark.Description = r.FormValue("description")
 	bookmark.Tags = strings.ReplaceAll(r.FormValue("tags"), " ", "")
 	bookmark.Status = r.FormValue("status")
+	bookmark.Slug = r.FormValue("slug")
+
+	if bookmark.Slug == "" {
+		bookmark.Slug = models.GenerateSlug(bookmark.Title)
+		nanoId, err := gonanoid.New(10)
+		if err != nil {
+			slog.Error("Failed to generate nano ID", "error", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+		bookmark.Slug += "-" + nanoId
+	}
 
 	if err := h.bookmarks.Update(bookmark); err != nil {
-		log.Printf("Error updating bookmark: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed updating bookmark", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
@@ -220,13 +254,14 @@ func (h *BookmarkHandler) BookmarksDelete(w http.ResponseWriter, r *http.Request
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
+		slog.Warn("handlers.BookmarksDelete received invalid bookmark ID")
 		http.Error(w, "Invalid bookmark ID", http.StatusBadRequest)
 		return
 	}
 
 	if err := h.bookmarks.Delete(id); err != nil {
-		log.Printf("Error deleting bookmark by ID: %v", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		slog.Error("Failed deleting bookmark by ID", "error", err, "ID", id)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
