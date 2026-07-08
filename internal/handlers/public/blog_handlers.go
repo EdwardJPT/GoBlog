@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -55,6 +54,7 @@ func NewWritingsHandler(db *sql.DB) *WritingsHandler {
 	tmpl := template.New("").Funcs(utils.RegisterTemplateFuncs())
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/public/blog/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/components/*.html"))
+	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/404.html"))
 	return &WritingsHandler{
 		posts:     models.NewPostRepository(db),
 		notes:     models.NewNoteRepository(db),
@@ -152,6 +152,7 @@ func (h *WritingsHandler) BlogPage(w http.ResponseWriter, r *http.Request) {
 	if err := h.templates.ExecuteTemplate(w, "blog", data); err != nil {
 		slog.Error("Template handlers.BlogPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -184,8 +185,14 @@ func (h *WritingsHandler) Post(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			slog.Error("Post not found error", "slug", slug)
-			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			// Set the 404 header explicitly
+			w.WriteHeader(http.StatusNotFound)
+			// Render 404 directly here
+			data := NotFoundData{ParentFeature: "blog"}
+			if err := utils.RenderTemplate(w, h.templates, "404", data); err != nil {
+				slog.Error("Template 404 failed in blog_handlers", "error", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
 			return
 		}
 		slog.Error("Failed fetching post from database", "slug", slug, "error", err)
@@ -203,6 +210,7 @@ func (h *WritingsHandler) Post(w http.ResponseWriter, r *http.Request) {
 	if err := h.templates.ExecuteTemplate(w, "published_post_layout", postContent); err != nil {
 		slog.Error("Template handlers.Post failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -213,8 +221,14 @@ func (h *WritingsHandler) Note(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			slog.Error("Note not found error", "slug", slug)
-			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			// Set the 404 header explicitly
+			w.WriteHeader(http.StatusNotFound)
+			// Render 404 directly here
+			data := NotFoundData{ParentFeature: "blog"}
+			if err := utils.RenderTemplate(w, h.templates, "404", data); err != nil {
+				slog.Error("Template 404 failed in blog_handlers", "error", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
 			return
 		}
 		slog.Error("Failed fetching note from database", "slug", slug, "error", err)
@@ -232,6 +246,7 @@ func (h *WritingsHandler) Note(w http.ResponseWriter, r *http.Request) {
 	if err := h.templates.ExecuteTemplate(w, "published_note_layout", noteContent); err != nil {
 		slog.Error("Template handlers.Note failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -242,8 +257,14 @@ func (h *WritingsHandler) Bookmark(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			slog.Error("Bookmark not found error", "slug", slug)
-			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			// Set the 404 header explicitly
+			w.WriteHeader(http.StatusNotFound)
+			// Render 404 directly here
+			data := NotFoundData{ParentFeature: "blog"}
+			if err := utils.RenderTemplate(w, h.templates, "404", data); err != nil {
+				slog.Error("Template 404 failed in blog_handlers", "error", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
 			return
 		}
 		slog.Error("Failed fetching bookmark from database", "slug", slug, "error", err)
@@ -262,5 +283,6 @@ func (h *WritingsHandler) Bookmark(w http.ResponseWriter, r *http.Request) {
 	if err := h.templates.ExecuteTemplate(w, "published_bookmark_layout", bookmarkContent); err != nil {
 		slog.Error("Template handlers.Bookmark failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }

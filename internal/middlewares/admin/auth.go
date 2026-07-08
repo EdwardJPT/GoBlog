@@ -15,7 +15,7 @@ func Auth(jwt *jwtauth.JWTAuth) func(http.Handler) http.Handler {
 			cookie, err := r.Cookie("bearer")
 			if err != nil {
 				// No cookie → redirect to login
-				redirectUrl := fmt.Sprintf("/?redirect=%s", r.URL.Path)
+				redirectUrl := fmt.Sprintf("/nimda?redirect=%s", r.URL.Path)
 				http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 				return
 			}
@@ -24,7 +24,7 @@ func Auth(jwt *jwtauth.JWTAuth) func(http.Handler) http.Handler {
 			if err != nil {
 				// Invalid token → clear cookie and redirect
 				utils.ClearTokenCookie(w)
-				redirectUrl := fmt.Sprintf("/?redirect=%s", r.URL.Path)
+				redirectUrl := fmt.Sprintf("/nimda?redirect=%s", r.URL.Path)
 				http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
 				return
 			}

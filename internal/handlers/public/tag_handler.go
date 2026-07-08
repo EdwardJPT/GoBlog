@@ -69,6 +69,7 @@ func (h *TagsHandler) TagsList(w http.ResponseWriter, r *http.Request) {
 	if err = h.templates.ExecuteTemplate(w, "tags", data); err != nil {
 		slog.Error("Template handlers.TagsList failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -158,5 +159,6 @@ func (h *TagsHandler) Tag(w http.ResponseWriter, r *http.Request) {
 	if err = h.templates.ExecuteTemplate(w, "tag", data); err != nil {
 		slog.Error("Template handlers.Tag failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }

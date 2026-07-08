@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -50,6 +49,7 @@ func NewWorksHandler(db *sql.DB) *WorksHandler {
 	tmpl := template.New("").Funcs(utils.RegisterTemplateFuncs())
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/public/projects/*.html"))
 	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/components/*.html"))
+	tmpl = template.Must(tmpl.ParseGlob("web/templates/shared/404.html"))
 	return &WorksHandler{
 		projects:      models.NewProjectRepository(db),
 		contributions: models.NewContributionRepository(db),
@@ -140,6 +140,7 @@ func (h *WorksHandler) ProjectsPage(w http.ResponseWriter, r *http.Request) {
 	if err := h.templates.ExecuteTemplate(w, "projects", data); err != nil {
 		slog.Error("Template handlers.ProjectsPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -169,8 +170,14 @@ func (h *WorksHandler) Project(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			slog.Error("Project not found error", "slug", slug)
-			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			// Set the 404 header explicitly
+			w.WriteHeader(http.StatusNotFound)
+			// Render 404 directly here
+			data := NotFoundData{ParentFeature: "projects"}
+			if err := utils.RenderTemplate(w, h.templates, "404", data); err != nil {
+				slog.Error("Template 404 failed in projects_handlers", "error", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
 			return
 		}
 		slog.Error("Failed fetching project from database", "slug", slug, "error", err)
@@ -191,6 +198,7 @@ func (h *WorksHandler) Project(w http.ResponseWriter, r *http.Request) {
 	if err := h.templates.ExecuteTemplate(w, "published_project_layout", projectContent); err != nil {
 		slog.Error("Template handlers.Project failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -201,8 +209,14 @@ func (h *WorksHandler) OpenSourceContribution(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			slog.Error("Contribution not found error", "slug", slug)
-			redirectUrl := fmt.Sprintf("/404?redirect=%s", r.URL.Path)
-			http.Redirect(w, r, redirectUrl, http.StatusSeeOther)
+			// Set the 404 header explicitly
+			w.WriteHeader(http.StatusNotFound)
+			// Render 404 directly here
+			data := NotFoundData{ParentFeature: "projects"}
+			if err := utils.RenderTemplate(w, h.templates, "404", data); err != nil {
+				slog.Error("Template 404 failed in projects_handlers", "error", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
 			return
 		}
 		slog.Error("Failed fetching contribution from database", "slug", slug, "error", err)
@@ -222,5 +236,6 @@ func (h *WorksHandler) OpenSourceContribution(w http.ResponseWriter, r *http.Req
 	if err := h.templates.ExecuteTemplate(w, "published_contribution_layout", contributionContent); err != nil {
 		slog.Error("Template handlers.OpenSourceContribution failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }

@@ -313,6 +313,7 @@ func (h *HomeHandler) HomePage(w http.ResponseWriter, r *http.Request) {
 	if err := h.templates.ExecuteTemplate(w, "index", data); err != nil {
 		slog.Error("Template handlers.HomePage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
 

@@ -3,11 +3,17 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func InitSQLite() (*sql.DB, error) {
+	// Ensure the directory exists before attempting to open the database file
+	if err := os.MkdirAll("./sqlite_files", 0755); err != nil {
+		return nil, fmt.Errorf("create sqlite directory: %w", err)
+	}
+
 	dbUri := "./sqlite_files/blog.db?_foreign_keys=yes&_journal_mode=WAL"
 	db, err := sql.Open("sqlite3", dbUri)
 	if err != nil {

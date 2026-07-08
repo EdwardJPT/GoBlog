@@ -59,5 +59,6 @@ func (h *NotFoundHandler) NotFoundPage(w http.ResponseWriter, r *http.Request) {
 	if err := h.templates.ExecuteTemplate(w, "404", data); err != nil {
 		slog.Error("Template handlers.NotFoundPage failed", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
 }
