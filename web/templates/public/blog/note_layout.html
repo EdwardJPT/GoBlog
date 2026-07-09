@@ -37,73 +37,89 @@
       color: white !important;
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
+
+    /* Prevents raw HTML output from Go's Markdown renderer from breaking the mobile viewport */
+    .prose pre,
+    .prose table {
+      overflow-x: auto;
+      max-width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .prose img {
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 100%;
+      height: auto;
+    }
   </style>
 </head>
 
 <body class="bg-background text-white antialiased">
   <nav id="navbar"
-    class="fixed top-0 left-0 z-10 flex h-24 w-full max-w-screen items-center justify-center bg-lighter_background font-sans text-white md:relative">
-    <div class="flex h-full w-7xl flex-row items-center justify-evenly md:justify-between">
-      <a href="/blog" class="ml-0 flex flex-row items-center md:ml-6 lg:ml-24">
+    class="fixed top-0 left-0 z-10 flex h-24 w-full items-center justify-center bg-lighter_background font-sans text-white md:relative">
+    <div class="flex h-full w-full max-w-7xl flex-row items-center justify-between px-4 sm:px-6 lg:px-8">
+      <a href="/blog" class="flex flex-row items-center">
         <img src="/static/images/logo-for-page.png" alt="logo picture" width="30" height="37.5"
-          class="h-10 w-6 sm:h-14 sm:w-8" />
+          class="h-10 w-6 sm:h-12 sm:w-8" />
         <h2
-          class="ml-3 flex w-fit justify-center border-b border-b-white pb-4 text-xl font-light tracking-title sm:text-2xl md:ml-6">
+          class="ml-3 flex w-fit justify-center border-b border-b-white pb-2 text-xl font-light tracking-title sm:text-2xl md:ml-6 text-white text-center">
           EdwardJPT's blog
         </h2>
       </a>
 
-      <div id="nav_links_controller" onclick="show_links()" class="cursor-pointer md:hidden">
-        <div class="mt-1 h-1 w-7 bg-white"></div>
-        <div class="mt-1 h-1 w-7 bg-white"></div>
-        <div class="mt-1 h-1 w-7 bg-white"></div>
-      </div>
+      <button id="nav_links_controller" onclick="toggle_links()" class="cursor-pointer md:hidden"
+        aria-label="Toggle navigation menu">
+        <div class="mb-1.5 h-0.5 w-7 bg-white"></div>
+        <div class="mb-1.5 h-0.5 w-7 bg-white"></div>
+        <div class="h-0.5 w-7 bg-white"></div>
+      </button>
 
       <div id="nav_links"
-        class="fixed top-24 hidden w-screen flex-col justify-between  md:relative md:top-0 md:flex md:w-fit md:flex-row lg:mr-12">
+        class="fixed top-24 left-0 hidden w-full flex-col bg-lighter_background border-t border-white/10 md:relative md:top-0 md:flex md:w-auto md:flex-row md:border-none md:bg-transparent">
         <a href="/"
-          class="mx-0 flex min-w-28 items-center justify-center bg-lighter_background px-5 py-3 text-xl hover:bg-hover md:mx-3">
+          class="flex items-center justify-center px-5 py-4 text-lg hover:bg-white/5 transition-colors md:mx-1 md:py-3 md:text-xl border-b border-white/5 md:border-none">
           Home
         </a>
         <a href="/blog"
-          class="mx-0 flex min-w-28 items-center justify-center bg-lighter_background px-5 py-3 text-xl hover:bg-hover md:mx-3">
+          class="flex items-center justify-center px-5 py-4 text-lg hover:bg-white/5 transition-colors md:mx-1 md:py-3 md:text-xl border-b border-white/5 md:border-none">
           Blog
         </a>
         <a href="/projects"
-          class="mx-0 flex min-w-28 items-center justify-center bg-lighter_background px-5 py-3 text-xl hover:bg-hover md:mx-3">
+          class="flex items-center justify-center px-5 py-4 text-lg hover:bg-white/5 transition-colors md:mx-1 md:py-3 md:text-xl border-b border-white/5 md:border-none">
           Projects
         </a>
         <a href="/about"
-          class="mx-0 flex min-w-28 items-center justify-center bg-lighter_background px-5 py-3 text-xl hover:bg-hover md:mx-3">
+          class="flex items-center justify-center px-5 py-4 text-lg hover:bg-white/5 transition-colors md:mx-1 md:py-3 md:text-xl">
           About
         </a>
       </div>
     </div>
   </nav>
 
-  <main class="max-w-4xl mx-auto pt-30 md:py-16 px-6 shadow-sm min-h-screen">
-    <header class="font-sans mb-10 border-b pb-8">
-      <h1 class="text-4xl font-semibold tracking-tight text-white mb-2">
+  <main class="mx-auto w-full max-w-4xl px-4 pt-32 pb-12 sm:px-6 md:py-16 lg:px-8 shadow-sm min-h-screen">
+    <header class="font-sans mb-8 border-b border-white/50 pb-6 md:mb-10 md:pb-8">
+      <h1 class="mb-3 text-3xl font-semibold tracking-tight text-white leading-tight sm:text-4xl lg:text-5xl">
         {{.Title}}
       </h1>
+      <time datetime="{{.PublishedAt}}" class="text-sm font-medium text-zinc-400 sm:text-base block">
+        {{formatDate .PublishedAt}}
+      </time>
     </header>
 
-    <section class="prose prose-lg prose-zinc prose-invert max-w-none text-white/80 font-semibold mb-5">
-      {{formatDate .PublishedAt}}
-    </section>
-
-    <section class="prose prose-lg prose-zinc prose-invert max-w-none font-semibold">
+    <article
+      class="prose prose-zinc prose-invert sm:prose-base lg:prose-lg max-w-none break-words font-medium md:font-semibold text-white/90">
       {{.Content}}
-    </section>
+    </article>
 
     {{if .Tags}}
-    <section class="prose prose-lg prose-zinc prose-invert max-w-none font-semibold mt-10 flex flex-row gap-2.5">
-      <a href="/tags" class="no-underline font-bold text-white/75">
+    <section class="mt-12 flex flex-wrap items-center gap-3 border-t border-white/10 pt-6">
+      <span class="font-bold text-white/75 text-sm sm:text-base">
         Tags:
-      </a>
+      </span>
       {{ range split .Tags "," }}
       <a href="/tag/{{ . }}"
-        class="text-base hover:px-1 py-1 bg-white/10 border border-white/5 w-fit text-slate-100 hover:bg-background relative z-20 shrink-0 font-semibold">
+        class="border border-white/10 bg-white/5 px-3 py-1 text-sm font-semibold text-slate-100 transition-colors hover:bg-white/10 hover:border-white/30">
         {{ . }}
       </a>
       {{end}}
@@ -111,22 +127,18 @@
     {{end}}
   </main>
 
-  <section class="min-w-full bg-background">
+  <footer class="min-w-full bg-background border-t border-white/5">
     {{template "footer" .}}
-  </section>
+  </footer>
 </body>
 
 <script>
-  // controller to show the nav links in small screen
+  // Controller to toggle classes rather than inline styles.
   const navLinks = document.getElementById("nav_links");
-  const navLinksController = document.getElementById("nav_links_controller");
-  const show_links = () => {
-    let display = navLinks.style.display;
-    if (display == "" || display == "none") {
-      navLinks.style.display = "flex";
-    } else {
-      navLinks.style.display = "none";
-    }
+
+  const toggle_links = () => {
+    navLinks.classList.toggle("hidden");
+    navLinks.classList.toggle("flex");
   }
 </script>
 
