@@ -31,6 +31,12 @@ func InitSQLite() (*sql.DB, error) {
 		return nil, fmt.Errorf("set the foreign_keys = on: %w", err)
 	}
 
+	// Run the migrations
+	err = RunMigrations(db)
+	if err != nil {
+		return nil, fmt.Errorf("db migration failed: %w", err)
+	}
+
 	return db, nil
 }
 

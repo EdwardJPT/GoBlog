@@ -38,18 +38,11 @@ func main() {
 	}
 	defer db.Close()
 	slog.Info("Success connecting to the database")
+	slog.Info("DB migration success")
 	slog.Info("DB config info", "Foreign Keys", database.CheckFK(db))
 	slog.Info("DB config info", "Journal Mode", database.CheckJournalMode(db))
 	slog.Info("DB config info", "   Sync Mode", database.CheckSynchronous(db))
 	slog.Info("DB config info", "  Cache Size", database.CheckCacheSize(db))
-
-	// Run the migration
-	err = database.RunMigrations(db)
-	if err != nil {
-		slog.Error("DB Migration failed, shutting down", "error", err)
-		os.Exit(1)
-	}
-	slog.Info("DB Migration success")
 
 	// Init the cache connection
 	dbRAM, err := database.InitSQLiteRAM()
