@@ -31,6 +31,16 @@
         placeholder="Enter note title">
     </div>
 
+    <!-- Note Link -->
+    {{ if .Note.Slug }}
+    <div class="flex flex-row items-center gap-3">
+      <p class="block text-sm font-medium text-gray-700">Note URL:</p>
+      <a class="text-background" href="/note/{{.Note.Slug}}" target="_blank">
+        https://edward.wtf/note/{{.Note.Slug}}
+      </a>
+    </div>
+    {{ end }}
+
     <!-- Content -->
     <div>
       <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Content *</label>

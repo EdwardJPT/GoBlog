@@ -63,6 +63,7 @@ func (r *BookmarkRepository) GetByID(id int64) (*Bookmark, error) {
 		SELECT
 			id,
 			title,
+			slug,
 			url,
 			description,
 			tags,
@@ -77,6 +78,7 @@ func (r *BookmarkRepository) GetByID(id int64) (*Bookmark, error) {
 	err := r.db.QueryRow(query, id).Scan(
 		&bookmark.ID,
 		&bookmark.Title,
+		&bookmark.Slug,
 		&bookmark.URL,
 		&bookmark.Description,
 		&bookmark.Tags,

@@ -60,6 +60,7 @@ func (r *NoteRepository) GetByID(id int64) (*Note, error) {
 		SELECT
 			id,
 			title,
+			slug,
 			content,
 			tags,
 			status,
@@ -73,6 +74,7 @@ func (r *NoteRepository) GetByID(id int64) (*Note, error) {
 	err := r.db.QueryRow(query, id).Scan(
 		&note.ID,
 		&note.Title,
+		&note.Slug,
 		&note.Content,
 		&note.Tags,
 		&note.Status,

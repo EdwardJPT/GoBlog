@@ -72,6 +72,7 @@ func (r *ProjectRepository) GetByID(id int64) (*Project, error) {
 		SELECT
 			id,
 			name,
+			slug,
 			description,
 			home_page_description,
 			repo_link,
@@ -89,6 +90,7 @@ func (r *ProjectRepository) GetByID(id int64) (*Project, error) {
 	err := r.db.QueryRow(query, id).Scan(
 		&project.ID,
 		&project.Name,
+		&project.Slug,
 		&project.Description,
 		&project.HomePageDescription,
 		&project.RepoLink,

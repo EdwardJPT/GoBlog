@@ -66,6 +66,7 @@ func (r *ContributionRepository) GetByID(id int64) (*Contribution, error) {
 		SELECT
 			id,
 			project_name,
+			slug,
 			description,
 			home_page_description,
 			tags,
@@ -81,6 +82,7 @@ func (r *ContributionRepository) GetByID(id int64) (*Contribution, error) {
 	err := r.db.QueryRow(query, id).Scan(
 		&contribution.ID,
 		&contribution.ProjectName,
+		&contribution.Slug,
 		&contribution.Description,
 		&contribution.HomePageDescription,
 		&contribution.Tags,
