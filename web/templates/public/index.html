@@ -20,7 +20,7 @@
 <body class="flex min-h-screen max-w-[1920px] overflow-auto flex-col items-center justify-center bg-background">
 
   <div
-    class="sticky top-0 h-dvh w-full flex flex-col p-4 md:p-6 overflow-hidden font-sans text-slate-200 bg-lighter_background max-h-screen">
+    class="hidden sticky top-0 h-dvh w-full md:flex flex-col p-4 md:p-6 overflow-hidden font-sans text-slate-200 bg-lighter_background max-h-screen max-w-screen-2xl">
 
     <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 shrink-0 gap-0 md:gap-6">
       <div class="flex flex-col">
@@ -68,7 +68,7 @@
 
         {{if eq $item.Type "post"}}
         <article
-          class="col-span-1 md:col-span-2 md:row-span-2 border border-slate-50 p-4 md:p-6 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative overflow-hidden min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-2 md:row-span-2 border border-slate-50 p-4 md:p-6 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative overflow-hidden min-h-27.5 md:min-h-0">
 
           <div class="max-w-full">
             <div
@@ -107,17 +107,12 @@
             </a>
             {{end}}
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "project"}}
         <article
-          class="col-span-1 md:col-span-2 md:row-span-2 border border-slate-50 p-4 md:p-6 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative overflow-hidden min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-2 md:row-span-2 border border-slate-50 p-4 md:p-6 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative overflow-hidden min-h-27.5 md:min-h-0">
 
           <div class="max-w-full">
             <div
@@ -136,7 +131,7 @@
             </div>
 
             <h2
-              class="text-sm md:text-3xl font-medium md:font-bold text-white mb-0 md:mb-3 leading-snug md:leading-tight group-hover:text-indigo-200 transition-colors line-clamp-2 md:line-clamp-none">
+              class="text-md md:text-3xl font-medium md:font-bold text-white mb-1 md:mb-3 leading-snug md:leading-tight group-hover:text-indigo-200 transition-colors line-clamp-2 md:line-clamp-none">
               <a href="/project/{{$item.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
                 {{$item.Project.Name}}
               </a>
@@ -148,17 +143,17 @@
             </p>
           </div>
 
-          <div class="flex flex-col">
+          <div class="flex flex-col gap-y-1.5 md:gap-y-0.5">
             {{if $item.Project.DemoLink}}
             <a href="{{$item.Project.DemoLink}}" target="_blank"
-              class="relative z-20 w-max text-lg font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mb-2">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               Live Demo &rarr;
             </a>
             {{end}}
 
             {{if $item.Project.RepoLink}}
             <a href="{{$item.Project.RepoLink}}" target="_blank"
-              class="relative z-20 w-max text-lg font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               GitHub Repository &rarr;
             </a>
             {{end}}
@@ -172,17 +167,12 @@
               {{end}}
             </div>
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "contribution"}}
         <article
-          class="col-span-1 md:col-span-2 md:row-span-2 border border-slate-50 p-4 md:p-6 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative overflow-hidden min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-2 md:row-span-2 border border-slate-50 p-4 md:p-6 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative overflow-hidden min-h-27.5 md:min-h-0">
 
           <div class="max-w-full">
             <div
@@ -201,7 +191,7 @@
             </div>
 
             <h2
-              class="text-sm md:text-3xl font-medium md:font-bold text-white mb-0 md:mb-3 leading-snug md:leading-tight group-hover:text-indigo-200 transition-colors line-clamp-2 md:line-clamp-none">
+              class="text-md md:text-3xl font-medium md:font-bold text-white mb-1 md:mb-3 leading-snug md:leading-tight group-hover:text-indigo-200 transition-colors line-clamp-2 md:line-clamp-none">
               <a href="/open-source-contribution/{{$item.Contribution.Slug}}"
                 class="before:absolute before:inset-0 before:z-0">
                 {{$item.Contribution.ProjectName}}
@@ -216,7 +206,7 @@
 
           <div class="flex flex-col">
             <a href="{{$item.Contribution.Link}}" target="_blank"
-              class="relative z-20 w-max text-lg font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               See The Contribution &rarr;
             </a>
             <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
@@ -228,11 +218,6 @@
               {{end}}
             </div>
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
@@ -240,7 +225,7 @@
 
         {{if eq $item.Type "post"}}
         <article
-          class="col-span-1 md:col-span-2 md:row-span-1 border border-slate-50 p-4 md:p-5 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0 relative">
+          class="col-span-1 md:col-span-2 md:row-span-1 border border-slate-50 p-4 md:p-5 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-0 relative">
           <div>
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -275,17 +260,12 @@
             </a>
             {{end}}
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "project"}}
         <article
-          class="col-span-1 md:col-span-2 md:row-span-1 border border-slate-50 p-4 md:p-5 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0 relative">
+          class="col-span-1 md:col-span-2 md:row-span-1 border border-slate-50 p-4 md:p-5 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-0 relative">
           <div>
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -301,7 +281,7 @@
               </span>
             </div>
             <h2
-              class="text-sm md:text-2xl font-medium md:font-semibold text-white mb-0 md:mb-1 group-hover:text-indigo-100 transition-colors line-clamp-2 md:truncate">
+              class="text-md md:text-2xl font-medium md:font-semibold text-white mb-1 md:mb-1 group-hover:text-indigo-100 transition-colors line-clamp-2 md:truncate">
               <a href="/project/{{$item.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
                 {{$item.Project.Name}}
               </a>
@@ -312,17 +292,17 @@
             </p>
           </div>
 
-          <div class="flex flex-col">
+          <div class="flex flex-col gap-y-1.5 md:gap-y-0.5">
             {{if $item.Project.DemoLink}}
             <a href="{{$item.Project.DemoLink}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mb-2">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               Live Demo &rarr;
             </a>
             {{end}}
 
             {{if $item.Project.RepoLink}}
             <a href="{{$item.Project.RepoLink}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               GitHub Repository &rarr;
             </a>
             {{end}}
@@ -336,17 +316,12 @@
               {{end}}
             </div>
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "contribution"}}
         <article
-          class="col-span-1 md:col-span-2 md:row-span-1 border border-slate-50 p-4 md:p-5 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0 relative">
+          class="col-span-1 md:col-span-2 md:row-span-1 border border-slate-50 p-4 md:p-5 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-0 relative">
           <div>
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -376,7 +351,7 @@
 
           <div class="flex flex-col">
             <a href="{{$item.Contribution.Link}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               See The Contribution &rarr;
             </a>
 
@@ -388,11 +363,6 @@
               </a>
               {{end}}
             </div>
-          </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
           </div>
         </article>
         {{end}}
@@ -401,7 +371,7 @@
 
         {{if eq $item.Type "post"}}
         <article
-          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-27.5 md:min-h-0">
           <div class="flex flex-col">
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -436,17 +406,12 @@
             </a>
             {{end}}
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "project"}}
         <article
-          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-27.5 md:min-h-0">
           <div class="flex flex-col">
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -462,7 +427,7 @@
               </span>
             </div>
             <h3
-              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-1 md:mb-3">
               <a href="/project/{{$item.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
                 {{$item.Project.Name}}
               </a>
@@ -473,17 +438,17 @@
             </p>
           </div>
 
-          <div class="flex flex-col gap-1">
+          <div class="flex flex-col gap-y-1.5 md:gap-y-0.5">
             {{if $item.Project.DemoLink}}
             <a href="{{$item.Project.DemoLink}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               Live Demo &rarr;
             </a>
             {{end}}
 
             {{if $item.Project.RepoLink}}
             <a href="{{$item.Project.RepoLink}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               GitHub Repository &rarr;
             </a>
             {{end}}
@@ -497,17 +462,12 @@
               {{end}}
             </div>
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "contribution"}}
         <article
-          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-27.5 md:min-h-0">
           <div class="flex flex-col">
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -537,7 +497,7 @@
 
           <div class="flex flex-col">
             <a href="{{$item.Contribution.Link}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               See The Contribution &rarr;
             </a>
 
@@ -549,11 +509,6 @@
               </a>
               {{end}}
             </div>
-          </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
           </div>
         </article>
         {{end}}
@@ -562,7 +517,7 @@
 
         {{if eq $item.Type "post"}}
         <article
-          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-27.5 md:min-h-0">
           <div class="flex flex-col">
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -597,17 +552,12 @@
             </a>
             {{end}}
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "project"}}
         <article
-          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-27.5 md:min-h-0">
           <div class="flex flex-col">
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -623,7 +573,7 @@
               </span>
             </div>
             <h3
-              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-1 md:mb-3">
               <a href="/project/{{$item.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
                 {{$item.Project.Name}}
               </a>
@@ -634,17 +584,17 @@
             </p>
           </div>
 
-          <div class="flex flex-col gap-1">
+          <div class="flex flex-col gap-y-1.5 md:gap-y-0.5">
             {{if $item.Project.DemoLink}}
             <a href="{{$item.Project.DemoLink}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               Live Demo &rarr;
             </a>
             {{end}}
 
             {{if $item.Project.RepoLink}}
             <a href="{{$item.Project.RepoLink}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               GitHub Repository &rarr;
             </a>
             {{end}}
@@ -658,17 +608,12 @@
               {{end}}
             </div>
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "contribution"}}
         <article
-          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-27.5 md:min-h-0">
           <div class="flex flex-col">
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -698,7 +643,7 @@
 
           <div class="flex flex-col">
             <a href="{{$item.Contribution.Link}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               See The Contribution &rarr;
             </a>
 
@@ -711,17 +656,12 @@
               {{end}}
             </div>
           </div>
-
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "note"}}
         <article
-          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-27.5 md:min-h-0">
           <div class="flex flex-col">
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -756,16 +696,12 @@
             </a>
             {{end}}
           </div>
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         {{if eq $item.Type "bookmark"}}
         <article
-          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-[110px] md:min-h-0">
+          class="col-span-1 md:col-span-1 md:row-span-1 border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group relative min-h-27.5 md:min-h-0">
           <div class="flex flex-col">
             <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
               <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -781,7 +717,7 @@
               </span>
             </div>
             <h3
-              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+              class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-1 md:mb-3">
               <a href="/bookmark/{{$item.Bookmark.Slug}}" class="before:absolute before:inset-0 before:z-0">
                 {{$item.Bookmark.Title}}
               </a>
@@ -793,7 +729,7 @@
           </div>
           <div class="flex flex-col">
             <a href="{{$item.Bookmark.URL}}" target="_blank"
-              class="relative z-20 w-max text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer">
+              class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
               See The Link &rarr;
             </a>
             <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
@@ -805,17 +741,13 @@
               {{end}}
             </div>
           </div>
-          <div
-            class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-            Read →
-          </div>
         </article>
         {{end}}
 
         <div class="col-span-1 md:col-span-4 relative pt-2 md:pt-0">
 
           <div id="article-carousel"
-            class="flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory pb-4 relative z-0 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-track]:bg-white/5 [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/40 [&::-webkit-scrollbar-thumb]:rounded-full transition-colors min-h-[110px] md:h-full md:max-h-full">
+            class="flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory pb-4 relative z-0 [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:bg-white/20 hover:[&::-webkit-scrollbar-thumb]:bg-white/40 [&::-webkit-scrollbar-thumb]:rounded-full transition-colors min-h-27.5 md:h-full md:max-h-full">
 
             {{ range $index, $element := .Feed }}
 
@@ -823,7 +755,7 @@
 
             {{if eq .Type "post"}}
             <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
-              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-0">
               <div class="flex flex-col">
                 <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
                   <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -858,16 +790,12 @@
                 </a>
                 {{end}}
               </div>
-              <div
-                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-                Read →
-              </div>
             </article>
             {{end}}
 
             {{if eq .Type "project"}}
             <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
-              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-0">
               <div class="flex flex-col">
                 <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
                   <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -883,7 +811,7 @@
                   </span>
                 </div>
                 <h3
-                  class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+                  class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-1 md:mb-3">
                   <a href="/project/{{.Project.Slug}}" class="before:absolute before:inset-0 before:z-0">
                     {{.Project.Name}}
                   </a>
@@ -893,16 +821,16 @@
                   {{.Project.Description}}
                 </p>
               </div>
-              <div class="flex flex-col gap-1">
+              <div class="flex flex-col gap-y-1.5 md:gap-y-0.5">
                 {{if .Project.DemoLink}}
                 <a href="{{.Project.DemoLink}}" target="_blank"
-                  class="relative z-20 inline-block text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer wrap-break-words">
+                  class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
                   Live Demo &rarr;
                 </a>
                 {{end}}
                 {{if .Project.RepoLink}}
                 <a href="{{.Project.RepoLink}}" target="_blank"
-                  class="relative z-20 inline-block text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer wrap-break-words">
+                  class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
                   GitHub Repository &rarr;
                 </a>
                 {{end}}
@@ -915,16 +843,12 @@
                   {{end}}
                 </div>
               </div>
-              <div
-                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-                Read →
-              </div>
             </article>
             {{end}}
 
             {{if eq .Type "contribution"}}
             <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
-              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-0">
               <div class="flex flex-col">
                 <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
                   <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -953,7 +877,7 @@
               </div>
               <div class="flex flex-col">
                 <a href="{{.Contribution.Link}}" target="_blank"
-                  class="relative z-20 inline-block text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer wrap-break-words">
+                  class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
                   See The Contribution &rarr;
                 </a>
                 <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
@@ -965,16 +889,12 @@
                   {{end}}
                 </div>
               </div>
-              <div
-                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-                Read →
-              </div>
             </article>
             {{end}}
 
             {{if eq .Type "note"}}
             <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
-              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-0">
               <div class="flex flex-col">
                 <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
                   <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -1009,16 +929,12 @@
                 </a>
                 {{end}}
               </div>
-              <div
-                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-                Read →
-              </div>
             </article>
             {{end}}
 
             {{if eq .Type "bookmark"}}
             <article {{if eq $index 1}}id="start-articles" {{end}} {{if eq $index 8}}id="end-articles" {{end}}
-              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-0">
+              class="relative snap-start flex-none w-[80%] md:w-[22.5%] border border-slate-50 p-4 flex flex-col justify-between hover:bg-hover transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-0">
               <div class="flex flex-col">
                 <div class="flex items-center gap-2 text-[10px] uppercase tracking-wider text-indigo-100 mb-2">
                   <span class="text-xs font-medium relative z-10 pointer-events-none">
@@ -1034,7 +950,7 @@
                   </span>
                 </div>
                 <h3
-                  class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-3">
+                  class="text-sm md:text-base font-bold text-slate-200 leading-snug group-hover:text-white transition-colors line-clamp-2 mb-1 md:mb-3">
                   <a href="/bookmark/{{.Bookmark.Slug}}" class="before:absolute before:inset-0 before:z-0">
                     {{.Bookmark.Title}}
                   </a>
@@ -1046,7 +962,7 @@
               </div>
               <div class="flex flex-col">
                 <a href="{{.Bookmark.URL}}" target="_blank"
-                  class="relative z-20 inline-block text-sm font-semibold text-indigo-200 hover:text-white transition-colors cursor-pointer wrap-break-words">
+                  class="relative z-20 w-max text-xs md:text-lg font-normal md:font-semibold text-white hover:text-indigo-300 transition-colors cursor-pointer mt-auto">
                   See The Link &rarr;
                 </a>
                 <div class="hidden md:flex mt-4 gap-2 relative z-10 overflow-x-auto max-w-full pb-2">
@@ -1058,17 +974,13 @@
                   {{end}}
                 </div>
               </div>
-              <div
-                class="md:hidden mt-3 text-[10px] uppercase tracking-wider text-slate-500 font-semibold group-hover:text-indigo-400 transition-colors relative z-10 pointer-events-none">
-                Read →
-              </div>
             </article>
             {{end}}
 
             {{if eq $index 4}}
             <button
               onclick="document.getElementById('end-articles').scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });"
-              class="hidden sm:flex snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-full">
+              class="hidden sm:flex snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-full">
               <svg class="w-6 h-6 text-indigo-300 group-hover:text-white group-hover:translate-x-1 transition-all"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7">
@@ -1081,7 +993,7 @@
 
             <button
               onclick="document.getElementById('start-articles').scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });"
-              class="hidden sm:flex snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-[110px] md:min-h-full">
+              class="hidden sm:flex snap-center flex-none w-[15%] md:w-[5%] border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 hover:border-indigo-500/50 p-2 flex-col justify-center items-center transition-all duration-300 group cursor-pointer min-h-27.5 md:min-h-full">
               <svg class="w-6 h-6 text-indigo-300 group-hover:text-white group-hover:-translate-x-1 transition-all"
                 fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7">
@@ -1130,6 +1042,7 @@
     <main id="bio"
       class="flex min-h-screen max-w-4xl flex-col justify-center bg-inherit p-6 mb-17.5 text-white z-10 sm:px-8 lg:items-center lg:px-16 lg:pt-20">
       <div class="flex w-full flex-col justify-between lg:flex-row">
+        <!-- Left column -->
         <div class="md:-mt-10 mb-6 flex flex-col gap-y-3 sm:gap-y-5 items-start lg:mb-0 lg:w-7/12">
           <p class="text-lg tracking-widest">
             Hi I am,
@@ -1142,37 +1055,37 @@
               A full-stack web developer with a passion for low-level programming. This
               passion has led me to explore
               <a href="/tag/database-internals"
-                class="font-bold underline whitespace-normal hover:text-gray-300 transition-colors">database
+                class="font-medium underline whitespace-normal hover:text-gray-300 transition-colors">database
                 internals</a>
               and
               <a href="/tag/distributed-systems"
-                class="font-bold underline hover:text-gray-300 transition-colors">distributed systems</a>.
+                class="font-medium underline hover:text-gray-300 transition-colors">distributed systems</a>.
               Other than those two,
               <br class="hidden lg:block">
               I also tinker around with
-              <a href="/tags" class="font-bold underline hover:text-gray-300 transition-colors">other topics</a> too.
+              <a href="/tags" class="font-medium underline hover:text-gray-300 transition-colors">other topics</a> too.
             </p>
             <p>
               Though I lean heavily toward the backend now, I’m no stranger to the frontend, as I built the entirety of
               <a href="https://github.com/EdwardJPT/GoBlog"
-                class="font-bold underline hover:text-gray-300 transition-colors">this website</a> myself.
+                class="font-medium underline hover:text-gray-300 transition-colors">this website</a>
+              myself.
             </p>
             <p>
               Outside of web development, I also enjoy solving numerical and algorithmic problems,
               as found on sites like
-              <a href="/tag/project-euler" class="font-bold underline hover:text-gray-300 transition-colors">Project
+              <a href="/tag/project-euler" class="font-medium underline hover:text-gray-300 transition-colors">Project
                 Euler</a>,
-              <a href="/tag/cses" class="font-bold underline hover:text-gray-300 transition-colors">CSES</a>,
+              <a href="/tag/cses" class="font-medium underline hover:text-gray-300 transition-colors">CSES</a>,
               and
               <a href="/tag/codeforces"
-                class="font-bold underline hover:text-gray-300 transition-colors">Codeforces</a>.
+                class="font-medium underline hover:text-gray-300 transition-colors">Codeforces</a>.
             </p>
-            <p class="pt-2">
-              So, here's my site. Enjoy your stay!
-            </p>
+            <p class="pt-2">So, here's my site. Enjoy your stay!</p>
           </div>
         </div>
 
+        <!-- Right column -->
         <div class="mb-6 flex flex-col items-start lg:mb-0 lg:w-4/12 lg:items-end lg:justify-evenly md:text-lg">
           <div class="mb-10 flex flex-col lg:text-right">
             <p class="text-sm tracking-widest text-gray-300 uppercase">Currently</p>
@@ -1186,32 +1099,52 @@
             </div>
           </div>
 
-          <div class="items-between flex flex-col lg:text-right">
+          <div class="flex flex-col items-start lg:items-end lg:text-right">
             <p class="mb-2">Tools:</p>
-            <p>
-              Go, Typescript,
-              <br class="hidden lg:block">
-              PostgreSQL, SQLite,
-              <br class="hidden lg:block">
-              HTML, TailwindCSS,
-              <br class="hidden lg:block">
-              Preact.js, React.js,
-              <br class="hidden lg:block">
-              Next.js, and HTMX.
-            </p>
+
+            <!-- Daily drivers (visible by default) -->
+            <div id="tools-daily" class="block">
+              <p>
+                Go, SQLite, HTML,
+                <br class="hidden lg:block">
+                TailwindCSS, and Preact.js.
+              </p>
+            </div>
+
+            <!-- Expanded list (hidden by default) -->
+            <div id="tools-all" class="hidden flex-col items-start lg:items-end">
+              <p>
+                Go, TypeScript,
+                <br class="hidden lg:block">
+                PostgreSQL, SQLite,
+                <br class="hidden lg:block">
+                MongoDB, ElasticSearch,
+                <br class="hidden lg:block">
+                HTML, TailwindCSS,
+                <br class="hidden lg:block">
+                Preact.js, React.js,
+                <br class="hidden lg:block">
+                Next.js, and HTMX.
+              </p>
+              <!-- Subtle context/disclaimer -->
+              <p class="mt-2 text-sm text-gray-400 max-w-70">
+                Technologies used across past projects. Not all are actively part of my current stack.
+              </p>
+            </div>
+
+            <!-- Toggle button -->
+            <button id="tools-toggle" aria-expanded="false" onclick="toggleTools()"
+              class="mt-3 text-sm text-gray-400 underline hover:text-white transition-colors focus:outline-none focus:ring-1 focus:ring-gray-300 rounded cursor-pointer">
+              View all tools
+            </button>
           </div>
 
-          <!--
-          <div class="items-between flex flex-col lg:text-right">
-            <p class="mb-2">Open-source contributions:</p>
-            <p>Tinygrad, Chi(Go), NodeJS Internal, ExpressJS</p>
-          </div>
-          -->
         </div>
       </div>
 
       <div id="nav-sentinel" class="sm:mt-16"></div>
 
+      <!-- Links section -->
       <div class="relative flex flex-row justify-center text-center text-base sm:text-lg" id="links">
         <a href="/about"
           class="navLink mx-2 my-3 flex w-20 items-center justify-center border border-white px-3 py-4 select-none hover:bg-hover hover:font-bold sm:w-36">
@@ -1256,18 +1189,18 @@
               {{end}}
             </h3>
             <p
-              class="h-fit md:max-h-[85px] overflow-hidden group-hover:max-h-fit transition-all duration-300 ease-in-out max-w-lg font-medium relative">
+              class="h-fit md:max-h-21.25 overflow-hidden group-hover:max-h-fit transition-all duration-300 ease-in-out max-w-lg font-medium relative">
               {{.HomePageDescription}}
             </p>
           </div>
 
           <div
-            class="flex flex-wrap lg:flex-col justify-center items-center gap-2 text-base font-semibold sm:text-lg lg:min-w-78.75 lg:col-span-4 lg:grid-cols-2 lg:mt-0 lg:items-end">
+            class="flex flex-wrap lg:flex-col justify-center items-center gap-2 text-[15px] font-semibold lg:min-w-78.75 lg:col-span-4 lg:grid-cols-2 lg:mt-0 lg:items-end">
 
             {{with $techStack := index $.TechStacks .RowID}}
             <!-- Container for the 1D Array -->
             <div
-              class="flex flex-wrap lg:flex-col justify-center items-center gap-2 text-base font-semibold sm:text-lg lg:mt-0 lg:items-end">
+              class="flex flex-wrap flex-col justify-center items-center gap-2 text-base font-semibold sm:text-lg lg:mt-0 lg:items-end">
               <!-- Loop through the flattened array (e.g., "Go", "HTML, TailwindCSS, PreactJS") -->
               {{range $groupString := $techStack}}
               <div>
@@ -1568,6 +1501,33 @@
 
     // Start watching the sentinel
     observer.observe(sentinel);
+
+    function toggleTools() {
+      const daily = document.getElementById("tools-daily");
+      const all = document.getElementById("tools-all");
+      const btn = document.getElementById("tools-toggle");
+      const isExpanded = btn.getAttribute("aria-expanded") === "true";
+
+      if (isExpanded) {
+        // Collapse back to daily drivers
+        daily.classList.remove("hidden");
+        daily.classList.add("block");
+        all.classList.remove("flex");
+        all.classList.add("hidden");
+
+        btn.setAttribute("aria-expanded", "false");
+        btn.textContent = "View all tools";
+      } else {
+        // Expand to show all tools
+        daily.classList.remove("block");
+        daily.classList.add("hidden");
+        all.classList.remove("hidden");
+        all.classList.add("flex"); // Using flex to preserve alignment classes
+
+        btn.setAttribute("aria-expanded", "true");
+        btn.textContent = "Show daily drivers";
+      }
+    }
 
     /*
     // For the timeline feature

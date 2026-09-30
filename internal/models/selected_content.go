@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -305,11 +306,11 @@ func (r *SelectedRepository) GetAllWorks() ([]*SelectedWorksValue, error) {
 
 func (r *SelectedRepository) GetAllTechStackLayouts() (map[int64][]string, error) {
 	query := `
-        SELECT
-            work_id,
-            tech_stack_json
-        FROM tech_stack_layouts
-    `
+		SELECT
+			work_id,
+			tech_stack_json
+		FROM tech_stack_layouts
+	`
 
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -317,8 +318,7 @@ func (r *SelectedRepository) GetAllTechStackLayouts() (map[int64][]string, error
 	}
 	defer rows.Close()
 
-	// Modified map to hold a flat []string instead of [][]string because we
-	// split it by "," in the front end
+	// Map to hold the grouped strings
 	techStacks := make(map[int64][]string)
 
 	for rows.Next() {
@@ -330,7 +330,7 @@ func (r *SelectedRepository) GetAllTechStackLayouts() (map[int64][]string, error
 		}
 
 		var layout [][]string
-		var flatLayout []string // New slice to hold flattened data
+		var groupedLayout []string // Slice to hold the comma-separated groups
 
 		if techStackJSON != "" {
 			if err := json.Unmarshal([]byte(techStackJSON), &layout); err != nil {
@@ -338,14 +338,15 @@ func (r *SelectedRepository) GetAllTechStackLayouts() (map[int64][]string, error
 				return nil, errors.New(parseError)
 			}
 
-			// Flatten the 2D slice into a 1D slice
+			// Join each inner slice with a comma to preserve the group structure
+			// for the frontend split function.
 			for _, group := range layout {
-				flatLayout = append(flatLayout, group...)
+				joinedGroup := strings.Join(group, ",")
+				groupedLayout = append(groupedLayout, joinedGroup)
 			}
 		}
 
-		// Assign the flattened slice to the map
-		techStacks[workID] = flatLayout
+		techStacks[workID] = groupedLayout
 	}
 
 	if err := rows.Err(); err != nil {

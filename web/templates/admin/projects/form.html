@@ -20,8 +20,8 @@
 </div>
 {{end}}
 
-<form method="POST" {{if .IsEdit}} action="/nimda/projects/{{.ID}}" {{else}} action="/nimda/projects" {{end}}
-  class="bg-white rounded-lg shadow">
+<form id="project-form" method="POST" enctype="multipart/form-data" {{if .IsEdit}} action="/nimda/projects/{{.ID}}"
+  {{else}} action="/nimda/projects" {{end}} class="bg-white rounded-lg shadow">
 
   <div class="p-6 space-y-6">
     <!-- Name -->
@@ -109,14 +109,55 @@
       Cancel
     </a>
     <div>
-      <a href="/nimda/projects/{{.ID}}/preview" target="_blank"
+      <a id="project-preview-link" href="/nimda/projects/{{.ID}}/preview" target="_blank"
         class="px-4 py-2 mr-2 text-white bg-purple-500 border border-gray-300 rounded-lg hover:bg-purple-700">
         Preview
       </a>
-      <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+      <button type="button" id="project-save-button"
+        class="px-4 py-2 mr-2 bg-[#9d44f0] text-white rounded-lg hover:bg-purple-700">
+        Save
+      </button>
+      <button type="submit" id="project-submit-button"
+        class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
         {{if .IsEdit}}Update{{else}}Create{{end}} Project
       </button>
     </div>
   </div>
 </form>
+
+<script>
+  const projectForm = document.getElementById('project-form');
+  const projectSaveButton = document.getElementById('project-save-button');
+  const projectPreviewLink = document.getElementById('project-preview-link');
+  const projectSubmitButton = document.getElementById('project-submit-button');
+
+  projectSaveButton.addEventListener('click', async () => {
+    if (!projectForm.reportValidity()) return;
+
+    const originalLabel = projectSaveButton.textContent;
+    projectSaveButton.disabled = true;
+    projectSaveButton.textContent = 'Saving...';
+
+    try {
+      const response = await fetch(projectForm.action, {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        body: new FormData(projectForm),
+      });
+      if (!response.ok) throw new Error('Save failed');
+
+      const project = await response.json();
+      projectForm.action = `/nimda/projects/${project.id}`;
+      if (projectPreviewLink) projectPreviewLink.href = `/nimda/projects/${project.id}/preview`;
+      projectSubmitButton.textContent = 'Update Project';
+      projectSaveButton.textContent = 'Saved';
+    } catch (error) {
+      console.log({error});
+      projectSaveButton.textContent = 'Save failed';
+    } finally {
+      setTimeout(() => {projectSaveButton.textContent = originalLabel;}, 2000);
+      projectSaveButton.disabled = false;
+    }
+  });
+</script>
 {{end}}

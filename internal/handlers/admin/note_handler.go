@@ -2,6 +2,7 @@ package admin_handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -122,7 +123,7 @@ func (h *NoteHandler) NotesForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *NoteHandler) NotesCreate(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.NotesCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -156,6 +157,11 @@ func (h *NoteHandler) NotesCreate(w http.ResponseWriter, r *http.Request) {
 	if err := h.notes.Create(note); err != nil {
 		slog.Error("Failed creating note", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if isAsyncSave(r) {
+		writeSavedNote(w, http.StatusCreated, note)
 		return
 	}
 
@@ -232,7 +238,7 @@ func (h *NoteHandler) NotesUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.NotesUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -268,7 +274,24 @@ func (h *NoteHandler) NotesUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if isAsyncSave(r) {
+		writeSavedNote(w, http.StatusOK, note)
+		return
+	}
+
 	http.Redirect(w, r, "/nimda/notes", http.StatusFound)
+}
+
+func isAsyncSave(r *http.Request) bool {
+	return r.Header.Get("X-Requested-With") == "XMLHttpRequest"
+}
+
+func writeSavedNote(w http.ResponseWriter, status int, note *models.Note) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(note); err != nil {
+		slog.Error("Failed encoding saved note response", "error", err, "ID", note.ID)
+	}
 }
 
 func (h *NoteHandler) NotesDelete(w http.ResponseWriter, r *http.Request) {

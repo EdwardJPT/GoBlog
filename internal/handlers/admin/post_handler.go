@@ -2,6 +2,7 @@ package admin_handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -122,7 +123,7 @@ func (h *PostHandler) PostsForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *PostHandler) PostsCreate(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.PostsCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -156,6 +157,11 @@ func (h *PostHandler) PostsCreate(w http.ResponseWriter, r *http.Request) {
 	if err := h.posts.Create(post); err != nil {
 		slog.Error("Failed creating post", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if isAsyncSave(r) {
+		writeSavedPost(w, http.StatusCreated, post)
 		return
 	}
 
@@ -232,7 +238,7 @@ func (h *PostHandler) PostsUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.PostsUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -268,7 +274,20 @@ func (h *PostHandler) PostsUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if isAsyncSave(r) {
+		writeSavedPost(w, http.StatusOK, post)
+		return
+	}
+
 	http.Redirect(w, r, "/nimda/posts", http.StatusFound)
+}
+
+func writeSavedPost(w http.ResponseWriter, status int, post *models.Post) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(post); err != nil {
+		slog.Error("Failed encoding saved post response", "error", err, "ID", post.ID)
+	}
 }
 
 func (h *PostHandler) PostsDelete(w http.ResponseWriter, r *http.Request) {

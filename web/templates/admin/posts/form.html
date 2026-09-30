@@ -20,14 +20,14 @@
 </div>
 {{end}}
 
-<form method="POST" {{if .IsEdit}} action="/nimda/posts/{{.ID}}" {{else}} action="/nimda/posts" {{end}}
-  class="bg-white rounded-lg shadow">
+<form id="post-form" method="POST" enctype="multipart/form-data" {{if .IsEdit}} action="/nimda/posts/{{.ID}}" {{else}}
+  action="/nimda/posts" {{end}} class="bg-white rounded-lg shadow">
   <div class="p-6 space-y-6">
     <!-- Title -->
     <div>
       <label for="title" class="block text-sm font-medium text-gray-700 mb-2">Title *</label>
       <input type="text" id="title" name="title" value="{{.Post.Title}}" required
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
         placeholder="Enter post title" oninput="generateSlug()">
     </div>
 
@@ -41,15 +41,6 @@
     </div>
     {{ end }}
 
-    <!-- Slug -->
-    <div>
-      <label for="slug" class="block text-sm font-medium text-gray-700 mb-2">Slug</label>
-      <input type="text" id="slug" name="slug" value="{{.Post.Slug}}"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        placeholder="auto-generated-from-title">
-      <p class="text-sm text-gray-500 mt-1">URL-friendly version of the title. Leave empty to auto-generate.</p>
-    </div>
-
     <!-- Content -->
     <div>
       <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Content *</label>
@@ -61,7 +52,7 @@
       </div>
       <div id="write-panel" class="{{if .Post.Content}}block{{else}}block{{end}}">
         <textarea id="content" name="content" rows="20" required
-          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono"
           placeholder="Write your post content in Markdown...">{{.Post.Content}}</textarea>
       </div>
       <div id="preview-panel" class="hidden">
@@ -74,7 +65,7 @@
     <div>
       <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">Tags</label>
       <input type="text" id="tags" name="tags" value="{{.Post.Tags}}"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
         placeholder="tag1, tag2, tag3">
       <p class="text-sm text-gray-500 mt-1">Comma-separated tags</p>
     </div>
@@ -83,8 +74,7 @@
     <div>
       <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status</label>
       <select id="status" name="status"
-        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        onchange="updateStatusButton()">
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
         <option value="draft" {{if eq .Post.Status "draft" }}selected{{end}}>Draft</option>
         <option value="published" {{if eq .Post.Status "published" }}selected{{end}}>Published</option>
       </select>
@@ -96,22 +86,53 @@
       Cancel
     </a>
     <div class="flex gap-3">
-      <a href="/nimda/posts/{{.ID}}/preview" target="_blank"
+      <a id="post-preview-link" href="/nimda/posts/{{.ID}}/preview" target="_blank"
         class="px-4 py-2 mr-2 text-white bg-purple-500 border border-gray-300 rounded-lg hover:bg-purple-700">
         Preview
       </a>
-      <button type="submit" id="save-button" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700">
-        Save Draft
+      <button type="button" id="save-button" class="px-4 py-2 bg-[#665cf1] text-white rounded-lg hover:bg-blue-700">
+        Save
       </button>
-      <button type="submit" id="publish-button"
-        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 hidden">
-        Publish
+      <button type="submit" id="publish-button" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+        {{if .IsEdit}}Update{{else}}Create{{end}} Post
       </button>
     </div>
   </div>
 </form>
 
 <script>
+  const postForm = document.getElementById('post-form');
+  const postSaveButton = document.getElementById('save-button');
+  const postPreviewLink = document.getElementById('post-preview-link');
+
+  postSaveButton.addEventListener('click', async () => {
+    if (!postForm.reportValidity()) return;
+
+    const originalLabel = postSaveButton.textContent;
+    postSaveButton.disabled = true;
+    postSaveButton.textContent = 'Saving...';
+
+    try {
+      const response = await fetch(postForm.action, {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        body: new FormData(postForm),
+      });
+      if (!response.ok) throw new Error('Save failed');
+
+      const post = await response.json();
+      postForm.action = `/nimda/posts/${post.id}`;
+      if (postPreviewLink) postPreviewLink.href = `/nimda/posts/${post.id}/preview`;
+      postSaveButton.textContent = 'Saved';
+    } catch (error) {
+      console.log({error});
+      postSaveButton.textContent = 'Save failed';
+    } finally {
+      setTimeout(() => {postSaveButton.textContent = originalLabel;}, 2000);
+      postSaveButton.disabled = false;
+    }
+  });
+
   function generateSlug() {
     const title = document.getElementById('title').value;
     const slugInput = document.getElementById('slug');
@@ -155,22 +176,5 @@
       document.getElementById('preview-content').innerHTML = html;
     }
   }
-
-  function updateStatusButton() {
-    const status = document.getElementById('status').value;
-    const saveButton = document.getElementById('save-button');
-    const publishButton = document.getElementById('publish-button');
-
-    if (status === 'published') {
-      saveButton.classList.add('hidden');
-      publishButton.classList.remove('hidden');
-    } else {
-      saveButton.classList.remove('hidden');
-      publishButton.classList.add('hidden');
-    }
-  }
-
-  // Initialize
-  updateStatusButton();
 </script>
 {{end}}

@@ -20,8 +20,8 @@
 </div>
 {{end}}
 
-<form method="POST" {{if .IsEdit}} action="/nimda/bookmarks/{{.ID}}" {{else}} action="/nimda/bookmarks" {{end}}
-  class="bg-white rounded-lg shadow">
+<form id="bookmark-form" method="POST" enctype="multipart/form-data" {{if .IsEdit}} action="/nimda/bookmarks/{{.ID}}"
+  {{else}} action="/nimda/bookmarks" {{end}} class="bg-white rounded-lg shadow">
   <div class="p-6 space-y-6">
     <!-- Title -->
     <div>
@@ -83,14 +83,55 @@
       Cancel
     </a>
     <div>
-      <a href="/nimda/bookmarks/{{.ID}}/preview" target="_blank"
+      <a id="bookmark-preview-link" href="/nimda/bookmarks/{{.ID}}/preview" target="_blank"
         class="px-4 py-2 mr-2 text-white bg-green-500 border border-gray-300 rounded-lg hover:bg-green-700">
         Preview
       </a>
-      <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+      <button type="button" id="bookmark-save-button"
+        class="px-4 py-2 mr-2 bg-[#1cb454] text-white rounded-lg hover:bg-green-700">
+        Save
+      </button>
+      <button type="submit" id="bookmark-submit-button"
+        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
         {{if .IsEdit}}Update{{else}}Create{{end}} Bookmark
       </button>
     </div>
   </div>
 </form>
+
+<script>
+  const bookmarkForm = document.getElementById('bookmark-form');
+  const bookmarkSaveButton = document.getElementById('bookmark-save-button');
+  const bookmarkPreviewLink = document.getElementById('bookmark-preview-link');
+  const bookmarkSubmitButton = document.getElementById('bookmark-submit-button');
+
+  bookmarkSaveButton.addEventListener('click', async () => {
+    if (!bookmarkForm.reportValidity()) return;
+
+    const originalLabel = bookmarkSaveButton.textContent;
+    bookmarkSaveButton.disabled = true;
+    bookmarkSaveButton.textContent = 'Saving...';
+
+    try {
+      const response = await fetch(bookmarkForm.action, {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        body: new FormData(bookmarkForm),
+      });
+      if (!response.ok) throw new Error('Save failed');
+
+      const bookmark = await response.json();
+      bookmarkForm.action = `/nimda/bookmarks/${bookmark.id}`;
+      if (bookmarkPreviewLink) bookmarkPreviewLink.href = `/nimda/bookmarks/${bookmark.id}/preview`;
+      bookmarkSubmitButton.textContent = 'Update Bookmark';
+      bookmarkSaveButton.textContent = 'Saved';
+    } catch (error) {
+      console.log({error});
+      bookmarkSaveButton.textContent = 'Save failed';
+    } finally {
+      setTimeout(() => {bookmarkSaveButton.textContent = originalLabel;}, 2000);
+      bookmarkSaveButton.disabled = false;
+    }
+  });
+</script>
 {{end}}

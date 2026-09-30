@@ -2,6 +2,7 @@ package admin_handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -116,7 +117,7 @@ func (h *ContributionsHandler) ContributionsForm(w http.ResponseWriter, r *http.
 }
 
 func (h *ContributionsHandler) ContributionsCreate(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.ContributionsCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -154,6 +155,11 @@ func (h *ContributionsHandler) ContributionsCreate(w http.ResponseWriter, r *htt
 	if err := h.contributions.Create(contribution); err != nil {
 		slog.Error("Failed creating contribution", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if isAsyncSave(r) {
+		writeSavedContribution(w, http.StatusCreated, contribution)
 		return
 	}
 
@@ -232,7 +238,7 @@ func (h *ContributionsHandler) ContributionsUpdate(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.ContributionsUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -270,7 +276,20 @@ func (h *ContributionsHandler) ContributionsUpdate(w http.ResponseWriter, r *htt
 		return
 	}
 
+	if isAsyncSave(r) {
+		writeSavedContribution(w, http.StatusOK, contribution)
+		return
+	}
+
 	http.Redirect(w, r, "/nimda/os-contributions", http.StatusFound)
+}
+
+func writeSavedContribution(w http.ResponseWriter, status int, contribution *models.Contribution) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(contribution); err != nil {
+		slog.Error("Failed encoding saved contribution response", "error", err, "ID", contribution.ID)
+	}
 }
 
 func (h *ContributionsHandler) ContributionsDelete(w http.ResponseWriter, r *http.Request) {

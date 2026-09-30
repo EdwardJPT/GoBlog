@@ -20,8 +20,9 @@
 </div>
 {{end}}
 
-<form method="POST" {{if .IsEdit}} action="/nimda/os-contributions/{{.ID}}" {{else}} action="/nimda/os-contributions"
-  {{end}} class="bg-white rounded-lg shadow">
+<form id="contribution-form" method="POST" enctype="multipart/form-data" {{if .IsEdit}}
+  action="/nimda/os-contributions/{{.ID}}" {{else}} action="/nimda/os-contributions" {{end}}
+  class="bg-white rounded-lg shadow">
   <div class="p-6 space-y-6">
     <!-- Project Name -->
     <div>
@@ -91,14 +92,55 @@
       Cancel
     </a>
     <div>
-      <a href="/nimda/os-contributions/{{.ID}}/preview" target="_blank"
+      <a id="contribution-preview-link" href="/nimda/os-contributions/{{.ID}}/preview" target="_blank"
         class="px-4 py-2 mr-2 text-white bg-purple-500 border border-gray-300 rounded-lg hover:bg-purple-700">
         Preview
       </a>
-      <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+      <button type="button" id="contribution-save-button"
+        class="px-4 py-2 mr-2 bg-[#7b4dee] text-white rounded-lg hover:bg-indigo-700">
+        Save
+      </button>
+      <button type="submit" id="contribution-submit-button"
+        class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
         {{if .IsEdit}}Update{{else}}Create{{end}} Contribution
       </button>
     </div>
   </div>
 </form>
+
+<script>
+  const contributionForm = document.getElementById('contribution-form');
+  const contributionSaveButton = document.getElementById('contribution-save-button');
+  const contributionPreviewLink = document.getElementById('contribution-preview-link');
+  const contributionSubmitButton = document.getElementById('contribution-submit-button');
+
+  contributionSaveButton.addEventListener('click', async () => {
+    if (!contributionForm.reportValidity()) return;
+
+    const originalLabel = contributionSaveButton.textContent;
+    contributionSaveButton.disabled = true;
+    contributionSaveButton.textContent = 'Saving...';
+
+    try {
+      const response = await fetch(contributionForm.action, {
+        method: 'POST',
+        headers: {'X-Requested-With': 'XMLHttpRequest'},
+        body: new FormData(contributionForm),
+      });
+      if (!response.ok) throw new Error('Save failed');
+
+      const contribution = await response.json();
+      contributionForm.action = `/nimda/os-contributions/${contribution.id}`;
+      if (contributionPreviewLink) contributionPreviewLink.href = `/nimda/os-contributions/${contribution.id}/preview`;
+      contributionSubmitButton.textContent = 'Update Contribution';
+      contributionSaveButton.textContent = 'Saved';
+    } catch (error) {
+      console.log({error});
+      contributionSaveButton.textContent = 'Save failed';
+    } finally {
+      setTimeout(() => {contributionSaveButton.textContent = originalLabel;}, 2000);
+      contributionSaveButton.disabled = false;
+    }
+  });
+</script>
 {{end}}

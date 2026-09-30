@@ -2,6 +2,7 @@ package admin_handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -97,7 +98,7 @@ func (h *BookmarkHandler) BookmarksForm(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *BookmarkHandler) BookmarksCreate(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.BookmarksCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -133,6 +134,11 @@ func (h *BookmarkHandler) BookmarksCreate(w http.ResponseWriter, r *http.Request
 	if err := h.bookmarks.Create(bookmark); err != nil {
 		slog.Error("Failed creating bookmark", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if isAsyncSave(r) {
+		writeSavedBookmark(w, http.StatusCreated, bookmark)
 		return
 	}
 
@@ -210,7 +216,7 @@ func (h *BookmarkHandler) BookmarksUpdate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.BookmarksUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -247,7 +253,20 @@ func (h *BookmarkHandler) BookmarksUpdate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	if isAsyncSave(r) {
+		writeSavedBookmark(w, http.StatusOK, bookmark)
+		return
+	}
+
 	http.Redirect(w, r, "/nimda/bookmarks", http.StatusFound)
+}
+
+func writeSavedBookmark(w http.ResponseWriter, status int, bookmark *models.Bookmark) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(bookmark); err != nil {
+		slog.Error("Failed encoding saved bookmark response", "error", err, "ID", bookmark.ID)
+	}
 }
 
 func (h *BookmarkHandler) BookmarksDelete(w http.ResponseWriter, r *http.Request) {

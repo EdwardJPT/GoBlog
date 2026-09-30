@@ -2,6 +2,7 @@ package admin_handlers
 
 import (
 	"database/sql"
+	"encoding/json"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -122,7 +123,7 @@ func (h *ProjectHandler) ProjectsForm(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *ProjectHandler) ProjectsCreate(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.ProjectsCreate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -164,6 +165,11 @@ func (h *ProjectHandler) ProjectsCreate(w http.ResponseWriter, r *http.Request) 
 	if err := h.projects.Create(project); err != nil {
 		slog.Error("Failed creating project", "error", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	if isAsyncSave(r) {
+		writeSavedProject(w, http.StatusCreated, project)
 		return
 	}
 
@@ -243,7 +249,7 @@ func (h *ProjectHandler) ProjectsUpdate(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
+	if err := r.ParseMultipartForm(32 << 20); err != nil {
 		slog.Warn("handlers.ProjectsUpdate received invalid form data")
 		http.Error(w, "Invalid form data", http.StatusBadRequest)
 		return
@@ -283,7 +289,20 @@ func (h *ProjectHandler) ProjectsUpdate(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	if isAsyncSave(r) {
+		writeSavedProject(w, http.StatusOK, project)
+		return
+	}
+
 	http.Redirect(w, r, "/nimda/projects", http.StatusFound)
+}
+
+func writeSavedProject(w http.ResponseWriter, status int, project *models.Project) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	if err := json.NewEncoder(w).Encode(project); err != nil {
+		slog.Error("Failed encoding saved project response", "error", err, "ID", project.ID)
+	}
 }
 
 func (h *ProjectHandler) ProjectsDelete(w http.ResponseWriter, r *http.Request) {
