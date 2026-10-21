@@ -43,6 +43,9 @@ func main() {
 	slog.Info("DB config info", "Journal Mode", database.CheckJournalMode(db))
 	slog.Info("DB config info", "   Sync Mode", database.CheckSynchronous(db))
 	slog.Info("DB config info", "  Cache Size", database.CheckCacheSize(db))
+	// For Litestream it's recommended to be 5 seconds
+	// https://litestream.io/tips/#busy-timeout
+	slog.Info("DB config info", "Busy Timeout", database.CheckBusyTimeout(db))
 
 	// Init the cache connection
 	dbRAM, err := database.InitSQLiteRAM()
@@ -226,6 +229,7 @@ func main() {
 			})
 
 			// Tags
+			// TODO: make a button or icon to make it reachable in home
 			r.Route("/tags", func(r chi.Router) {
 				r.Get("/", adminTagsHandler.TagsList)
 				r.Get("/{name}/edit", adminTagsHandler.EditTagPage)

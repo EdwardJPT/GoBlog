@@ -14,7 +14,7 @@ func InitSQLite() (*sql.DB, error) {
 		return nil, fmt.Errorf("create sqlite directory: %w", err)
 	}
 
-	dbUri := "./sqlite_files/blog.db?_foreign_keys=yes&_journal_mode=WAL"
+	dbUri := "./sqlite_files/blog.db?_foreign_keys=yes&_journal_mode=WAL&_busy_timeout=5000"
 	db, err := sql.Open("sqlite3", dbUri)
 	if err != nil {
 		return nil, fmt.Errorf("create/open sqlite path: %w", err)
@@ -63,4 +63,10 @@ func CheckCacheSize(db *sql.DB) int {
 	var cacheSize int
 	db.QueryRow("PRAGMA cache_size;").Scan(&cacheSize)
 	return cacheSize
+}
+
+func CheckBusyTimeout(db *sql.DB) int {
+	var busyTimeout int
+	db.QueryRow("PRAGMA busy_timeout;").Scan(&busyTimeout)
+	return busyTimeout
 }

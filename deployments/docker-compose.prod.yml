@@ -3,8 +3,8 @@ services:
   nginx:
     image: docker.io/library/nginx:stable
     ports:
-      - "80:80"
-      - "443:443"
+      - "8080:80"
+      - "8443:443"
     extra_hosts:
       - "host.containers.internal:host-gateway"
     volumes:
